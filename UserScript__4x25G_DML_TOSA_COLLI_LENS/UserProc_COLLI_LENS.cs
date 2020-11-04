@@ -99,7 +99,7 @@ namespace UserScript
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
 
                 // STEP 4: 双边耦合
-                sw.Reset();
+                sw.Restart();
 
                 Step4(Apas);
 
@@ -153,11 +153,16 @@ namespace UserScript
         {
             int cycle = 0;
 
+            var powerPrev = Service.__SSC_Powermeter_Read(PM_COLLI);
+
         __redo_rectscan:
             Service.__SSC_LogInfo($"开始面扫描搜索初始光...cycle({cycle})");
             cycle++;
 
-            PerformAlignment(Service, Service.__SSC_DoRectAreaScan, "准直Lens_初始光", SSC_PMRangeEnum.RANGE2, double.NaN, 2);
+            PerformAlignment(Service, 
+                new Func<string, object>[] { Service.__SSC_DoRectAreaScan }, 
+                new string[] { "准直Lens_初始光" }, 
+                SSC_PMRangeEnum.RANGE1, double.NaN, 2);
 
             Thread.Sleep(500);
 
@@ -166,9 +171,15 @@ namespace UserScript
             Service.__SSC_LogInfo($"最大功率：{power:F2}dBm");
 
             // The exit condition is power > -15dBm
-            if (power < -15)
+            if (power < -25)
             {
-                if (cycle == 1)
+                if (power - powerPrev > 10)
+                {
+                    cycle--;
+                    powerPrev = power;
+                    goto __redo_rectscan;
+                }
+                else if (cycle == 1)
                 {
                     Service.__SSC_LogWarn($"搜索失败，Z轴前进20um重新搜索...");
                     Service.__SSC_MoveAxis("Lens", "Z", SSC_MoveMode.REL, 100, -20);
@@ -199,7 +210,11 @@ namespace UserScript
             while (true)
             {
                 // XY Scan
-                PerformAlignment(Service, Service.__SSC_DoFastND, "准直Lens_XY_0.2_20_Z_1_20", range, 0.2, 10);
+                PerformAlignment(Service, 
+                    new Func<string, object>[] { Service.__SSC_DoFastND, Service.__SSC_DoFastND },
+                    new string[] { "准直Lens_XY_0.2_20_Z_1_20", "准直Rept_XY_5_200" }, 
+                    range, 0.2, 10);
+
                 var power = Service.__SSC_Powermeter_Read(PM_COLLI);
                 Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
 
@@ -349,8 +364,11 @@ namespace UserScript
         }
 
 
-        static void PerformAlignment(SystemServiceClient Service, Func<string, object> AlignmnetHandler, string Profile, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm, int MaxCycle)
+        static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm, int MaxCycle)
         {
+            if (AlignmentHandlers.Length != Profiles.Length)
+                throw new Exception("Handler和Profile的数量不一致。");
+
             int cycle = 0;
             double currPower = Service.__SSC_Powermeter_Read(PM_COLLI);
             double lastPower = currPower;
@@ -361,7 +379,10 @@ namespace UserScript
 
                 Thread.Sleep(200);
 
-                AlignmnetHandler(Profile);
+                for(int i = 0; i < AlignmentHandlers.Length; i++)
+                {
+                    AlignmentHandlers[i](Profiles[i]);
+                }
 
                 Thread.Sleep(200);
 

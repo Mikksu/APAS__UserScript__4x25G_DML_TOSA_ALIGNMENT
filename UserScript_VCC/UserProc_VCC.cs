@@ -52,7 +52,7 @@ namespace UserScript
                 Apas.__SSC_EquipmentPluginControl(DP800_CAPTION, $"{PARAM} 2");
                 Apas.__SSC_EquipmentPluginControl(DP800_CAPTION, $"{PARAM} 1");
 
-                Thread.Sleep(500);
+                Thread.Sleep(2000);
 
                 // 检查VCC1和VCC3电流
                 var ICC1 = Apas.__SSC_MeasurableDevice_Read(DP800_READ_CURR_CH1);

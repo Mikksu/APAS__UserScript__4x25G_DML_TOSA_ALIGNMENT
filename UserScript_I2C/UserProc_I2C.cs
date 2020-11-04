@@ -45,14 +45,12 @@ namespace UserScript
                     throw new Exception(err);
                 }
 
-                if(channel < 0 || channel > 3)
+                if(channel < 1 || channel > 4)
                 {
-                    var err = "参数[2]错误，通道值范围必须为0 - 3。";
+                    var err = "参数[2]错误，通道值范围必须为1 - 4。";
                     Apas.__SSC_LogError(err);
                     throw new Exception(err);
                 }
-
-                channel++;
 
                 if (PARAM_FUNC == "ON")
                 {
@@ -70,7 +68,7 @@ namespace UserScript
                     Thread.Sleep(100);
 
                     iic.EnableTx(channel);
-                    Thread.Sleep(100);
+                    Thread.Sleep(2000);
 
                     // 检测电流
                     var icc2 = Apas.__SSC_MeasurableDevice_Read("RIGOL DP800s,CH2电流");

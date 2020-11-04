@@ -18,8 +18,8 @@ namespace UserScript
     {
         /// <summary>
         /// parameter define:
-        /// ON [0-3] 50
-        /// OFF [0-3]
+        /// ON [1-4] [50], 
+        /// OFF [1-4]
         /// </summary>
         static string PARAM_FUNC = "";
         static string PARAM_CH = "";

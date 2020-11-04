@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;//使用DllImport需要这个头文件
-
+using System.CodeDom;
 
 namespace GY7501
 {
-    public class GY7501
+    public class GY7501 : IDisposable
     {
         #region Properties
 
@@ -203,6 +203,9 @@ namespace GY7501
 
         public void SetIbias(int Channel, double ibias)
         {
+            if (ibias > 120)
+                throw new Exception("IBias不能超过120mA。");
+
             switch (Channel)
             {
                 case 1:
@@ -274,6 +277,18 @@ namespace GY7501
                 throw new Exception("读取数据出错！");
             }
             return ReadBuff.Databuffer;
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                GYI2C_Close(DEV_GY7501A, 0, 0);
+            }
+            catch(Exception)
+            {
+
+            }
         }
 
         #endregion
