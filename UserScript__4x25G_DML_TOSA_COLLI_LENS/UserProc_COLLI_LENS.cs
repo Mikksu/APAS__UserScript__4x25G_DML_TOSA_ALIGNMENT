@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Threading;
 using UserScript.CamRAC;
 using UserScript.SystemService;
@@ -30,6 +32,10 @@ namespace UserScript
         /// 耦合后最大光功率
         /// </summary>
         const double TARGET_POWER_MAX_DBM = 10;
+
+        const string LMC_LENS = "Lens";
+
+        const string LMC_LENS_AXIS_Z = "Z";
 
         #endregion
 
@@ -79,7 +85,7 @@ namespace UserScript
                 }
 
 
-                // Step 2: Fast ND Alignment
+                // Step 2: Fast Focus Scan
                 if(power < 0)
                 {
                     sw.Restart();
@@ -198,47 +204,113 @@ namespace UserScript
             }
         }
 
+        /// <summary>
+        /// Fast Focus Scan.
+        /// </summary>
+        /// <param name="Service"></param>
         static void Step2(SystemServiceClient Service)
         {
-            Queue<double> powerHistory = new Queue<double>();
+            const double STEP = 10;
+            const double RANGE = 50;
+            const double MIN_STEP = 2;
+            List<PointF> powerZHistory = new List<PointF>();
+            Queue<double> powerXYHistory = new Queue<double>();
             int cycle = 0;
+            double zMoved = 0, nextZMoveStep = STEP;
 
             Service.__SSC_LogInfo("开始执行快速扫描....");
 
             var range = SSC_PMRangeEnum.RANGE3;
+            var originZPos = Service.__SSC_GetAbsPosition(LMC_LENS, LMC_LENS_AXIS_Z);
+            var power = Service.__SSC_Powermeter_Read(PM_COLLI);
 
             while (true)
             {
-                // XY Scan
-                PerformAlignment(Service, 
-                    new Func<string, object>[] { Service.__SSC_DoFastND, Service.__SSC_DoFastND },
-                    new string[] { "准直Lens_XY_0.2_20_Z_1_20", "准直Rept_XY_5_200" }, 
-                    range, 0.2, 10);
+                #region XY Scan
 
-                var power = Service.__SSC_Powermeter_Read(PM_COLLI);
-                Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
-
-                if (power > 0)
-                    break;
-
-                powerHistory.Enqueue(power);
-                if (powerHistory.Count > 5)
-                    powerHistory.Dequeue();
-
-                if (powerHistory.Count > 2)
+                powerXYHistory.Clear();
+                cycle = 0;
+                while (true)
                 {
-                    DataAnalysis.CheckSlope(powerHistory.ToArray(), out DataAnalysis.SlopeTrendEnum trend);
-                    Service.__SSC_LogInfo($"功率变化趋势：{trend.ToString()}");
+                    // XY Scan
+                    PerformAlignment(Service,
+                        new Func<string, object>[] { Service.__SSC_DoFastND, Service.__SSC_DoFastND },
+                        new string[] { "准直Lens_XY_0.2_20_Z_1_20", "准直Rept_XY_5_200" },
+                        range, 0.2, power, 10);
 
-                    if (trend == DataAnalysis.SlopeTrendEnum.Ripple)
+                    power = Service.__SSC_Powermeter_Read(PM_COLLI);
+                    Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
+
+                    if (power > 0)
+                    {
+                        Service.__SSC_LogInfo("功率达到阈值，耦合结束。");
+                        return;
+                    }
+
+                    powerXYHistory.Enqueue(power);
+                    if (powerXYHistory.Count > 5)
+                        powerXYHistory.Dequeue();
+
+                    if (powerXYHistory.Count > 2)
+                    {
+                        DataAnalysis.CheckSlope(powerXYHistory.ToArray(), out DataAnalysis.SlopeTrendEnum trend);
+                        Service.__SSC_LogInfo($"功率变化趋势：{trend}");
+
+                        if (trend == DataAnalysis.SlopeTrendEnum.Ripple)
+                            break;
+                    }
+
+                    cycle++;
+
+                    if (cycle > 20)
+                    {
+                        // throw new Exception("快速扫描失败，无法找到稳定光功率。");
                         break;
+                    }
                 }
 
-                cycle++;
+                #endregion
 
-                if (cycle > 20)
-                    throw new Exception("快速扫描失败，无法找到稳定光功率。");
+                var lastPower = powerXYHistory.Last();
+                var currZPos = Service.__SSC_GetAbsPosition(LMC_LENS, LMC_LENS_AXIS_Z);
+                Service.__SSC_LogInfo($"XY平面功率: {(currZPos - originZPos):F4}um, {lastPower:F2}dBm");
 
+                if (lastPower > 0) // exit if the power > 0dBm
+                {
+                    break;
+                }
+                else
+                {
+                    powerZHistory.Add(new PointF((float)currZPos, (float)lastPower));
+
+                    if (powerZHistory.Count >= 2)
+                    {
+                        lastPower = powerZHistory[powerZHistory.Count - 1].Y;
+                        var lastlastPower = powerZHistory[powerZHistory.Count - 2].Y;
+                        var diff = lastPower - lastlastPower;
+                        Service.__SSC_LogInfo($"功率差: {diff:F2}dBm/{lastPower:F2}dBm/{lastlastPower:F2}dBm");
+                        if (diff < 0)
+                        {
+                            Service.__SSC_LogInfo("功率降低，开始反向搜索...");
+                            nextZMoveStep *= -1;
+                            nextZMoveStep /= 2;
+
+                            if (Math.Abs(nextZMoveStep) < MIN_STEP)
+                            {
+                                Service.__SSC_LogInfo("搜索步进收敛至最小，结束搜索！");
+                                break;
+                            }
+                        }
+                    }
+
+                    Service.__SSC_MoveAxis(LMC_LENS, LMC_LENS_AXIS_Z, SSC_MoveMode.REL, 20, nextZMoveStep);
+
+                    // accum the total distance of the Z axis moved,
+                    // be sure it never move out of the RANGE.
+                    zMoved += nextZMoveStep;
+                    if (zMoved > RANGE)
+                        break;
+                }
             }
         }
 
@@ -364,7 +436,7 @@ namespace UserScript
         }
 
 
-        static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm, int MaxCycle)
+        static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm, double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 20)
         {
             if (AlignmentHandlers.Length != Profiles.Length)
                 throw new Exception("Handler和Profile的数量不一致。");
@@ -393,7 +465,7 @@ namespace UserScript
 
                 if (double.IsNaN(BreakPowerDiff_dBm) == false)
                 {
-                    if (diffPower <= BreakPowerDiff_dBm)
+                    if (diffPower <= BreakPowerDiff_dBm || currPower >= BreakPowerMax_dBm)
                     {
                         // if the delta power is less than 2dB, jump out of the loop.
                         break;
@@ -410,6 +482,9 @@ namespace UserScript
                     break;
                 }
             }
+
+            // wait until the powermeter is stable.
+            Thread.Sleep(500);
         }
 
 
