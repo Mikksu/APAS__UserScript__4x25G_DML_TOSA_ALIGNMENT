@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4x25G_DML_TOSA_Colli_Lens_Alignment", "UserScript__4x25G_DML_TOSA_COLLI_LENS\4x25G_DML_TOSA_Colli_Lens_Alignment.csproj", "{D958EB2C-1969-4FFD-AD52-BB6B1C1021E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4x25G_DML_TOSA_VCC_Control", "UserScript_VCC\4x25G_DML_TOSA_VCC_Control.csproj", "{8F8CF421-10C0-463C-93FA-869FE211ACCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4x25G_DML_TOSA__IBias_Control", "UserScript_I2C\4x25G_DML_TOSA__IBias_Control.csproj", "{A0F56612-21EC-4A7C-AABC-EE9794D018DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4x25G_DML_TOSA_Colli_Lens_Alignment_with_UV_Glue", "UserScript__4x25G_DML_TOSA_COLLI_LENS_with_UV_Glue\4x25G_DML_TOSA_Colli_Lens_Alignment_with_UV_Glue.csproj", "{549EDFFA-2C09-42CF-944D-4124BA9D0463}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlignmentCommonLib", "AlignmentCommonLib\AlignmentCommonLib.csproj", "{C92106F1-878D-45AB-B08B-3F8478A0C2E2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D958EB2C-1969-4FFD-AD52-BB6B1C1021E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D958EB2C-1969-4FFD-AD52-BB6B1C1021E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D958EB2C-1969-4FFD-AD52-BB6B1C1021E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D958EB2C-1969-4FFD-AD52-BB6B1C1021E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F8CF421-10C0-463C-93FA-869FE211ACCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F8CF421-10C0-463C-93FA-869FE211ACCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F8CF421-10C0-463C-93FA-869FE211ACCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F8CF421-10C0-463C-93FA-869FE211ACCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0F56612-21EC-4A7C-AABC-EE9794D018DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0F56612-21EC-4A7C-AABC-EE9794D018DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0F56612-21EC-4A7C-AABC-EE9794D018DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0F56612-21EC-4A7C-AABC-EE9794D018DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{549EDFFA-2C09-42CF-944D-4124BA9D0463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{549EDFFA-2C09-42CF-944D-4124BA9D0463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{549EDFFA-2C09-42CF-944D-4124BA9D0463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{549EDFFA-2C09-42CF-944D-4124BA9D0463}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C53738FE-C396-4CA9-A977-AD3DCD1B8B5F}
+	EndGlobalSection
+EndGlobal
