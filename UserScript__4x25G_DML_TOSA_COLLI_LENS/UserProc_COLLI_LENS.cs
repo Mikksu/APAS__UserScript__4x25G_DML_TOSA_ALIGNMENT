@@ -51,7 +51,7 @@ namespace UserScript
         /// </summary>
         /// <param name="Apas"></param>
         /// <returns></returns>
-        static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null)
+        static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null, Options opts = null)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace UserScript
                 {
                     sw.Restart();
 
-                    Step1(Apas);
+                    Step1(Apas, opts);
 
                     sw.Stop();
                     Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
@@ -90,7 +90,7 @@ namespace UserScript
                 {
                     sw.Restart();
 
-                    Step2(Apas);
+                    Step2(Apas, opts);
 
                     sw.Stop();
                     Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
@@ -99,7 +99,7 @@ namespace UserScript
                 // STEP 3: Profile ND to fine-tune.
                 sw.Restart();
 
-                Step3(Apas);
+                Step3(Apas, opts);
 
                 sw.Stop();
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
@@ -107,7 +107,7 @@ namespace UserScript
                 // STEP 4: 双边耦合
                 sw.Restart();
 
-                Step4(Apas);
+                Step4(Apas, opts);
 
                 sw.Stop();
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
@@ -116,7 +116,7 @@ namespace UserScript
                 // STEP 5: Hill Climb
                 sw.Restart();
 
-                Step5(Apas);
+                Step5(Apas, opts);
 
                 sw.Stop();
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
@@ -155,7 +155,7 @@ namespace UserScript
 
         #region Private Methods
 
-        static void Step1(SystemServiceClient Service)
+        static void Step1(SystemServiceClient Service, Options opts)
         {
             int cycle = 0;
 
@@ -177,7 +177,7 @@ namespace UserScript
             Service.__SSC_LogInfo($"最大功率：{power:F2}dBm");
 
             // The exit condition is power > -15dBm
-            if (power < -25)
+            if (power < opts.PowerThreRectAreaScan)
             {
                 if (power - powerPrev > 10)
                 {
@@ -208,15 +208,12 @@ namespace UserScript
         /// Fast Focus Scan.
         /// </summary>
         /// <param name="Service"></param>
-        static void Step2(SystemServiceClient Service)
+        static void Step2(SystemServiceClient Service, Options opts)
         {
-            const double STEP = 10;
-            const double RANGE = 50;
-            const double MIN_STEP = 2;
             List<PointF> powerZHistory = new List<PointF>();
             Queue<double> powerXYHistory = new Queue<double>();
             int cycle = 0;
-            double zMoved = 0, nextZMoveStep = STEP;
+            double zMoved = 0, nextZMoveStep = opts.FocusScanStep;
 
             Service.__SSC_LogInfo("开始执行快速扫描....");
 
@@ -235,13 +232,13 @@ namespace UserScript
                     // XY Scan
                     PerformAlignment(Service,
                         new Func<string, object>[] { Service.__SSC_DoFastND, Service.__SSC_DoFastND },
-                        new string[] { "准直Lens_XY_0.2_20_Z_1_20", "准直Rept_XY_5_200" },
+                        new string[] { opts.ProfileNameFocusScanColliLens, opts.ProfileNameFocusScanColliRecept },
                         range, 0.2, power, 10);
 
                     power = Service.__SSC_Powermeter_Read(PM_COLLI);
                     Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
 
-                    if (power > 0)
+                    if (power > opts.PowerThreFocusScan)
                     {
                         Service.__SSC_LogInfo("功率达到阈值，耦合结束。");
                         return;
@@ -295,7 +292,7 @@ namespace UserScript
                             nextZMoveStep *= -1;
                             nextZMoveStep /= 2;
 
-                            if (Math.Abs(nextZMoveStep) < MIN_STEP)
+                            if (Math.Abs(nextZMoveStep) < opts.FocusScanFinalStep)
                             {
                                 Service.__SSC_LogInfo("搜索步进收敛至最小，结束搜索！");
                                 break;
@@ -308,17 +305,16 @@ namespace UserScript
                     // accum the total distance of the Z axis moved,
                     // be sure it never move out of the RANGE.
                     zMoved += nextZMoveStep;
-                    if (zMoved > RANGE)
+                    if (zMoved > opts.FocusScanRange)
                         break;
                 }
             }
         }
 
-        static void Step3(SystemServiceClient Service)
+        static void Step3(SystemServiceClient Service, Options opts)
         {
             Queue<double> powerHistory = new Queue<double>();
             int cycle = 0;
-            string profileName = "准直Lens_XY_0.2_10_Z_0.5_10";
 
             Service.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
 
@@ -333,7 +329,7 @@ namespace UserScript
                 double power = Service.__SSC_Powermeter_Read(PM_COLLI);
                 double lastPower = power;
 
-                Service.__SSC_DoProfileND(profileName);
+                Service.__SSC_DoProfileND(opts.ProfileNameLineScanLens);
 
                 Thread.Sleep(200);
 
@@ -359,7 +355,7 @@ namespace UserScript
                 Service.__SSC_LogInfo($"Power Diff: {powerDiff:F2}dB, {power:F2}dBm/{lastPower:F2}dBm");
                 lastPower = power;
                 //if (power > 0 && (powerDiff > -0.2 && powerDiff < 0.2))
-                if (powerDiff > -0.1 && powerDiff < 0.2)
+                if (powerDiff > opts.PowerThreLineScanN && powerDiff < opts.PowerThreLineScanP)
                     break;
                 else
                 {
@@ -375,7 +371,7 @@ namespace UserScript
         /// Rept和准直Lens同时调整。
         /// </summary>
         /// <param name="Apas"></param>
-        static void Step4(SystemServiceClient Apas)
+        static void Step4(SystemServiceClient Apas, Options opts)
         {
             int cycle = 0;
             double power, powerLast;
@@ -388,10 +384,10 @@ namespace UserScript
             while (true)
             {
                 Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.RANGE4);
-                Apas.__SSC_DoFastND("准直Rept_XY_5_200");
+                Apas.__SSC_DoFastND(opts.ProfileNameDualLineScanColliRecept);
 
                 Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoProfileND("准直Lens_XY_0.2_10_Z_0.5_10");
+                Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanColliLens);
 
                 Thread.Sleep(200);
 
@@ -402,7 +398,7 @@ namespace UserScript
 
                 powerLast = power;
                 //if (power > 3.5 && (powerDiff > -0.2 && powerDiff < 0.2))
-                if (powerDiff > -0.1 && powerDiff < 0.2)
+                if (powerDiff > opts.PowerThreDualLineScanN && powerDiff < opts.PowerThreDualLineScanP)
                 {
                     break;
                 }
@@ -420,14 +416,14 @@ namespace UserScript
             }
         }
 
-        static void Step5(SystemServiceClient Apas)
+        static void Step5(SystemServiceClient Apas, Options opts)
         {
             Apas.__SSC_LogInfo("开始执行爬山扫描...");
 
             try
             {
                 Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoHillClimb("准直Lens_FineTune");
+                Apas.__SSC_DoHillClimb(opts.ProfileNameHillClimb);
             }
             catch (Exception)
             {

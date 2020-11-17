@@ -56,11 +56,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="DataAnalysis.cs" />
     <Compile Include="DO_NOT_CHANGE.cs" />
     <Compile Include="I2C_Control.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Conditions.cs" />
     <Compile Include="UserProc_I2C.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -135,9 +133,6 @@
     <WCFMetadataStorage Include="Connected Services\SystemService\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SiUSBXp.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="VCI_GYI2C.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

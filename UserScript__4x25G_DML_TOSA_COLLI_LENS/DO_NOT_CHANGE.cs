@@ -1,6 +1,10 @@
 using System;
 using System.Linq;
 using UserScript.SystemService;
+using CommandLine;
+using System.Collections.Generic;
+using System.IO;
+using CommandLine.Text;
 
 namespace UserScript
 {
@@ -23,12 +27,43 @@ namespace UserScript
 
             try
             {
-                client.Open();
+                //client.Open();
 
-                client.__SSC_Connect();
+                //client.__SSC_Connect();
 
-                // perform the user process.
-                UserProc(client);
+                var helpWriter = new StringWriter();
+                var parser = new CommandLine.Parser(with => with.HelpWriter = helpWriter);
+
+                var parserResult = parser.ParseArguments<Options>(args);
+                parserResult.WithParsed(opts =>
+                {
+                    //if (opts.IsHelpTextRequired)
+                    //{
+                    //    var helpText = HelpText.AutoBuild(parserResult, h =>
+                    //    {
+                    //        h.AutoHelp = false;     // hides --help
+                    //        h.AutoVersion = false;  // hides --version
+                    //        return HelpText.DefaultParsingErrorsHandler(parserResult, h);
+                    //    }, e => e);
+                    //    Console.WriteLine(helpText);
+                    //}
+                    //else
+                    {
+
+                        // perform the user process.
+                        UserProc(client, opts: opts);
+                    }
+                })
+                .WithNotParsed(errs =>
+                {
+                    DisplayHelp(errs, helpWriter);
+
+                    var err = "解析启动参数错误。";
+                    client.__SSC_LogError(err);
+                    throw new Exception(err);
+                });
+
+
 
                 client.__SSC_Disonnect();
             }
@@ -53,6 +88,15 @@ namespace UserScript
             //Console.WriteLine("Press any key to exit.");
 
             //Console.ReadKey();
+        }
+
+
+        static void DisplayHelp(IEnumerable<Error> errs, TextWriter helpWriter)
+        {
+            if (errs.IsVersion() || errs.IsHelp())
+                Console.WriteLine(helpWriter.ToString());
+            else
+                Console.Error.WriteLine(helpWriter.ToString());
         }
     }
 }

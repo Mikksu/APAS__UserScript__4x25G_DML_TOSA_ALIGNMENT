@@ -58,7 +58,6 @@
     </Compile>
     <Compile Include="DO_NOT_CHANGE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Conditions.cs" />
     <Compile Include="UserProc_Colli_Lens_Alignment_with_UV_Glue.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -132,7 +131,9 @@
     <WCFMetadataStorage Include="Connected Services\CamRAC\" />
     <WCFMetadataStorage Include="Connected Services\SystemService\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="CommandLine\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Connected Services\SystemService\configuration91.svcinfo" />
   </ItemGroup>
