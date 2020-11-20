@@ -1,62 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Threading;
 using UserScript.CamRAC;
 using UserScript.SystemService;
 
 namespace UserScript
 {
-    partial class APAS_UserScript
+    internal partial class APAS_UserScript
     {
-        #region Variables
-
-        /// <summary>
-        /// 会聚光Lens耦合使用的功率计
-        /// </summary>
-        const string PM_FOCUS = "PM1906A1";
-
-        /// <summary>
-        /// 准直Lens耦合使用的功率计
-        /// </summary>
-        const string PM_COLLI = "PM1906A2";
-
-        /// <summary>
-        /// 耦合后最小光功率
-        /// </summary>
-        const double TARGET_POWER_MIN_DBM = 0;
-
-        /// <summary>
-        /// 耦合后最大光功率
-        /// </summary>
-        const double TARGET_POWER_MAX_DBM = 10;
-
-        const string LMC_LENS = "Lens";
-
-        const string LMC_LENS_AXIS_Z = "Z";
-
-        #endregion
-
         #region User Process
 
         /// <summary>
-        /// The section of the user process.
-        /// 用户自定义流程函数。
-        /// 
-        /// Please write your process in the following method.
-        /// 请在以下函数中定义您的工艺流程。
-        /// 
+        ///     The section of the user process.
+        ///     用户自定义流程函数。
+        ///     Please write your process in the following method.
+        ///     请在以下函数中定义您的工艺流程。
         /// </summary>
         /// <param name="Apas"></param>
         /// <returns></returns>
-        static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null)
+        private static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null)
         {
             try
             {
-                Stopwatch sw = new Stopwatch();
-                Stopwatch swTotal = new Stopwatch();
+                var sw = new Stopwatch();
+                var swTotal = new Stopwatch();
                 swTotal.Start();
 
                 // STEP 3: Profile-ND
@@ -80,7 +48,7 @@ namespace UserScript
 
                 if (TARGET_POWER_MIN_DBM <= power)
                 {
-                    Apas.__SSC_LogInfo($"脚本运行完成");
+                    Apas.__SSC_LogInfo("脚本运行完成");
                 }
                 else
                 {
@@ -97,15 +65,44 @@ namespace UserScript
 
             // Thread.Sleep(100);
         }
+
+        #endregion
+
+        #region Variables
+
+        /// <summary>
+        ///     会聚光Lens耦合使用的功率计
+        /// </summary>
+        private const string PM_FOCUS = "PM1906A1";
+
+        /// <summary>
+        ///     准直Lens耦合使用的功率计
+        /// </summary>
+        private const string PM_COLLI = "PM1906A2";
+
+        /// <summary>
+        ///     耦合后最小光功率
+        /// </summary>
+        private const double TARGET_POWER_MIN_DBM = 0;
+
+        /// <summary>
+        ///     耦合后最大光功率
+        /// </summary>
+        private const double TARGET_POWER_MAX_DBM = 10;
+
+        private const string LMC_LENS = "Lens";
+
+        private const string LMC_LENS_AXIS_Z = "Z";
+
         #endregion
 
         #region Private Methods
 
-        static void Step3(SystemServiceClient Service)
+        private static void Step3(SystemServiceClient Service)
         {
-            Queue<double> powerHistory = new Queue<double>();
-            int cycle = 0;
-            string profileName = "准直Lens_XY_0.2_10_Z_0.5_10";
+            var powerHistory = new Queue<double>();
+            var cycle = 0;
+            var profileName = "准直Lens_XY_0.2_10_Z_0.5_10";
 
             Service.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
 
@@ -117,8 +114,8 @@ namespace UserScript
             {
                 // PowerMeterAutoRange(Service, PM_CAPTION);
 
-                double power = Service.__SSC_Powermeter_Read(PM_COLLI);
-                double lastPower = power;
+                var power = Service.__SSC_Powermeter_Read(PM_COLLI);
+                var lastPower = power;
 
                 Service.__SSC_DoProfileND(profileName);
 
@@ -147,18 +144,18 @@ namespace UserScript
                 lastPower = power;
                 //if (power > 0 && (powerDiff > -0.2 && powerDiff < 0.2))
                 if (powerDiff > -0.1 && powerDiff < 0.2)
-                    break;
-                else
                 {
-                    cycle++;
-
-                    if (cycle > 10)
-                        throw new Exception("慢速扫描执行失败，无法找到稳定光功率。");
+                    break;
                 }
+
+                cycle++;
+
+                if (cycle > 10)
+                    throw new Exception("慢速扫描执行失败，无法找到稳定光功率。");
             }
         }
 
-        static void Step5(SystemServiceClient Apas)
+        private static void Step5(SystemServiceClient Apas)
         {
             Apas.__SSC_LogInfo("开始执行爬山扫描...");
 
@@ -169,19 +166,20 @@ namespace UserScript
             }
             catch (Exception)
             {
-
             }
         }
 
 
-        static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm, double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 20)
+        private static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers,
+            string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm,
+            double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 20)
         {
             if (AlignmentHandlers.Length != Profiles.Length)
                 throw new Exception("Handler和Profile的数量不一致。");
 
-            int cycle = 0;
-            double currPower = Service.__SSC_Powermeter_Read(PM_COLLI);
-            double lastPower = currPower;
+            var cycle = 0;
+            var currPower = Service.__SSC_Powermeter_Read(PM_COLLI);
+            var lastPower = currPower;
 
             while (true)
             {
@@ -189,10 +187,7 @@ namespace UserScript
 
                 Thread.Sleep(200);
 
-                for(int i = 0; i < AlignmentHandlers.Length; i++)
-                {
-                    AlignmentHandlers[i](Profiles[i]);
-                }
+                for (var i = 0; i < AlignmentHandlers.Length; i++) AlignmentHandlers[i](Profiles[i]);
 
                 Thread.Sleep(200);
 
@@ -208,12 +203,10 @@ namespace UserScript
                         // if the delta power is less than 2dB, jump out of the loop.
                         break;
                     }
-                    else
-                    {
-                        cycle++;
-                        if (cycle > MaxCycle)
-                            throw new Exception("初始光太小。");
-                    }
+
+                    cycle++;
+                    if (cycle > MaxCycle)
+                        throw new Exception("初始光太小。");
                 }
                 else
                 {
@@ -225,9 +218,6 @@ namespace UserScript
             Thread.Sleep(500);
         }
 
-
         #endregion
-
     }
-   
 }

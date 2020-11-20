@@ -1,28 +1,25 @@
 using System;
-using System.Linq;
-using UserScript.SystemService;
-using CommandLine;
 using System.Collections.Generic;
 using System.IO;
-using CommandLine.Text;
+using System.Linq;
+using CommandLine;
+using UserScript.SystemService;
 
 namespace UserScript
 {
     /// <summary>
-    /// =========================== ATTENTION ===========================
-    /// ===========================    注意   =========================== 
-    /// =                                                               =  
-    /// =          Please DO NOT make ANY changes to this file.         =
-    /// =                    请勿修改当前文件的任何内容。                   =
-    /// =                                                               =
-    /// =================================================================
-    /// 
+    ///     =========================== ATTENTION ===========================
+    ///     ===========================    注意   ===========================
+    ///     =                                                               =
+    ///     =          Please DO NOT make ANY changes to this file.         =
+    ///     =                    请勿修改当前文件的任何内容。                   =
+    ///     =                                                               =
+    ///     =================================================================
     /// </summary>
-    partial class APAS_UserScript
+    internal partial class APAS_UserScript
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            
             var client = new SystemServiceClient();
 
             try
@@ -32,37 +29,35 @@ namespace UserScript
                 //client.__SSC_Connect();
 
                 var helpWriter = new StringWriter();
-                var parser = new CommandLine.Parser(with => with.HelpWriter = helpWriter);
+                var parser = new Parser(with => with.HelpWriter = helpWriter);
 
                 var parserResult = parser.ParseArguments<Options>(args);
                 parserResult.WithParsed(opts =>
-                {
-                    //if (opts.IsHelpTextRequired)
-                    //{
-                    //    var helpText = HelpText.AutoBuild(parserResult, h =>
-                    //    {
-                    //        h.AutoHelp = false;     // hides --help
-                    //        h.AutoVersion = false;  // hides --version
-                    //        return HelpText.DefaultParsingErrorsHandler(parserResult, h);
-                    //    }, e => e);
-                    //    Console.WriteLine(helpText);
-                    //}
-                    //else
                     {
+                        //if (opts.IsHelpTextRequired)
+                        //{
+                        //    var helpText = HelpText.AutoBuild(parserResult, h =>
+                        //    {
+                        //        h.AutoHelp = false;     // hides --help
+                        //        h.AutoVersion = false;  // hides --version
+                        //        return HelpText.DefaultParsingErrorsHandler(parserResult, h);
+                        //    }, e => e);
+                        //    Console.WriteLine(helpText);
+                        //}
+                        //else
+                        {
+                            // perform the user process.
+                            UserProc(client, opts: opts);
+                        }
+                    })
+                    .WithNotParsed(errs =>
+                    {
+                        DisplayHelp(errs, helpWriter);
 
-                        // perform the user process.
-                        UserProc(client, opts: opts);
-                    }
-                })
-                .WithNotParsed(errs =>
-                {
-                    DisplayHelp(errs, helpWriter);
-
-                    var err = "解析启动参数错误。";
-                    client.__SSC_LogError(err);
-                    throw new Exception(err);
-                });
-
+                        var err = "解析启动参数错误。";
+                        client.__SSC_LogError(err);
+                        throw new Exception(err);
+                    });
 
 
                 client.__SSC_Disonnect();
@@ -74,10 +69,7 @@ namespace UserScript
 
                 var ex = ae.Flatten();
 
-                ex.InnerExceptions.ToList().ForEach(e =>
-                {
-                    Console.WriteLine($"Error occurred, {e.Message}");
-                });
+                ex.InnerExceptions.ToList().ForEach(e => { Console.WriteLine($"Error occurred, {e.Message}"); });
 
                 Console.ResetColor();
             }
@@ -91,7 +83,7 @@ namespace UserScript
         }
 
 
-        static void DisplayHelp(IEnumerable<Error> errs, TextWriter helpWriter)
+        private static void DisplayHelp(IEnumerable<Error> errs, TextWriter helpWriter)
         {
             if (errs.IsVersion() || errs.IsHelp())
                 Console.WriteLine(helpWriter.ToString());

@@ -1,34 +1,27 @@
-﻿using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using UserScript.CamRAC;
 using UserScript.SystemService;
 
 namespace UserScript
 {
-    partial class APAS_UserScript
+    internal partial class APAS_UserScript
     {
-        #region Variables
-
-        #endregion
-
         #region User Process
 
         /// <summary>
-        /// The section of the user process.
-        /// 用户自定义流程函数。
-        /// 
-        /// Please write your process in the following method.
-        /// 请在以下函数中定义您的工艺流程。
-        /// 
+        ///     The section of the user process.
+        ///     用户自定义流程函数。
+        ///     Please write your process in the following method.
+        ///     请在以下函数中定义您的工艺流程。
         /// </summary>
         /// <param name="Apas"></param>
         /// <returns></returns>
-        static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null, IOptions opts = null)
+        private static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null,
+            IOptions opts = null)
         {
             var var1 = $"{opts.PrefixVarRead}CH0";
             var var2 = $"{opts.PrefixVarRead}CH3";
@@ -38,7 +31,7 @@ namespace UserScript
             {
                 strch0 = Apas.__SSC_ReadVariable(var1);
             }
-            catch(NullReferenceException)
+            catch (NullReferenceException)
             {
                 var err = $"无法找到变量[{var1}]";
                 Apas?.__SSC_LogError(err);
@@ -56,16 +49,21 @@ namespace UserScript
                 throw new Exception(err);
             }
 
-            if (double.TryParse(strch0.ToString(), out double ch0) == false)
-                throw new Exception($"读取变量[{var1}]时发生错误。");
-            else if (double.TryParse(strch3.ToString(), out double ch3) == false)
-                throw new Exception($"读取变量[{var2}]时发生错误。");
-            else
+            if (double.TryParse(strch0.ToString(), out var ch0) == false) throw new Exception($"读取变量[{var1}]时发生错误。");
+
+            if (double.TryParse(strch3.ToString(), out var ch3) == false)
             {
-                var angle = (ch0 - ch3) / 3 / (opts.Coeff * opts.Pitch);
-                Apas.__SSC_WriteVariable(opts.PrefixVarWrite, angle);
+                throw new Exception($"读取变量[{var2}]时发生错误。");
             }
+
+            var angle = (ch0 - ch3) / 3 / (opts.Coeff * opts.Pitch);
+            Apas.__SSC_WriteVariable(opts.PrefixVarWrite, angle);
         }
+
+        #endregion
+
+        #region Variables
+
         #endregion
 
         #region Private Methods
@@ -75,33 +73,25 @@ namespace UserScript
         public static double CalculateAngleFromExcel(string docName, string sheetName, double X1, double X4)
         {
             // Open the document for editing.
-            using (SpreadsheetDocument document = SpreadsheetDocument.Open(docName, true))
+            using (var document = SpreadsheetDocument.Open(docName, true))
             {
-                IEnumerable<Sheet> sheets = document.WorkbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>().Where(s => s.Name == sheetName);
-                if (sheets.Count() == 0)
-                {
-                    throw new System.Exception("The specified worksheet does not exist.");
-                }
-                string relationshipId = sheets.First().Id.Value;
-                WorksheetPart worksheetPart = (WorksheetPart)document.WorkbookPart.GetPartById(relationshipId);
+                var sheets = document.WorkbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>()
+                    .Where(s => s.Name == sheetName);
+                if (sheets.Count() == 0) throw new Exception("The specified worksheet does not exist.");
+                var relationshipId = sheets.First().Id.Value;
+                var worksheetPart = (WorksheetPart) document.WorkbookPart.GetPartById(relationshipId);
 
                 // Get the cell at the specified column and row.
-                string colName = "C";
+                var colName = "C";
                 uint rowIndex = 6;
-                Cell cell = GetSpreadsheetCell(worksheetPart.Worksheet, colName, rowIndex);
-                if (cell == null)
-                {
-                    throw new System.Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
-                }
+                var cell = GetSpreadsheetCell(worksheetPart.Worksheet, colName, rowIndex);
+                if (cell == null) throw new Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
 
                 cell.CellValue = new CellValue(X1.ToString());
 
                 rowIndex = 9;
                 cell = GetSpreadsheetCell(worksheetPart.Worksheet, colName, rowIndex);
-                if (cell == null)
-                {
-                    throw new System.Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
-                }
+                if (cell == null) throw new Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
                 cell.CellValue = new CellValue(X4.ToString());
 
                 worksheetPart.Worksheet.Save();
@@ -110,46 +100,35 @@ namespace UserScript
                 colName = "G";
                 rowIndex = 6;
                 cell = GetSpreadsheetCell(worksheetPart.Worksheet, colName, rowIndex);
-                if (cell == null)
-                {
-                    throw new System.Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
-                }
+                if (cell == null) throw new Exception($"The specified cell [{colName}{rowIndex}] does not exist.");
 
                 var cellval = cell.CellValue.Text;
 
-                if (double.TryParse(cellval.ToString(), out double angle) == false)
-                    throw new System.Exception($"unable to convert the cell {colName}{rowIndex} value {cellval} to angle.");
-                else
-                {
-                    Debug.WriteLine($"Predicated Angle: {angle}°");
-                    return angle;
-                }
+                if (double.TryParse(cellval, out var angle) == false)
+                    throw new Exception($"unable to convert the cell {colName}{rowIndex} value {cellval} to angle.");
 
-                
+                Debug.WriteLine($"Predicated Angle: {angle}°");
+                return angle;
             }
         }
 
         // Given a worksheet, a column name, and a row index, gets the cell at the specified column and row.
         private static Cell GetSpreadsheetCell(Worksheet worksheet, string columnName, uint rowIndex)
         {
-            IEnumerable<Row> rows = worksheet.GetFirstChild<SheetData>().Elements<Row>().Where(r => r.RowIndex == rowIndex);
+            var rows = worksheet.GetFirstChild<SheetData>().Elements<Row>().Where(r => r.RowIndex == rowIndex);
             if (rows.Count() == 0)
-            {
                 // A cell does not exist at the specified row.
                 return null;
-            }
 
-            IEnumerable<Cell> cells = rows.First().Elements<Cell>().Where(c => string.Compare(c.CellReference.Value, columnName + rowIndex, true) == 0);
+            var cells = rows.First().Elements<Cell>()
+                .Where(c => string.Compare(c.CellReference.Value, columnName + rowIndex, true) == 0);
             if (cells.Count() == 0)
-            {
                 // A cell does not exist at the specified column, in the specified row.
                 return null;
-            }
 
             return cells.First();
         }
 
         #endregion
-
     }
 }

@@ -1,8 +1,6 @@
-using CommandLine;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using CommandLine;
 using UserScript.SystemService;
 
 namespace UserScript
@@ -18,11 +16,9 @@ namespace UserScript
     /// 
     /// </summary>
     /// 
-
-
-    partial class APAS_UserScript
+    internal partial class APAS_UserScript
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             try
             {
@@ -30,7 +26,7 @@ namespace UserScript
                 var client = new SystemServiceClient();
                 client.Open();
 
-                CommandLine.Parser.Default.ParseArguments<CalRYOptions, CalRXOptions>(args)
+                Parser.Default.ParseArguments<CalRYOptions, CalRXOptions>(args)
                     .MapResult(
                       (CalRYOptions opts) =>
                       {
@@ -64,14 +60,6 @@ namespace UserScript
                 });
 
                 Console.ResetColor();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                //client.Close();
             }
             //Console.WriteLine("Press any key to exit.");
 

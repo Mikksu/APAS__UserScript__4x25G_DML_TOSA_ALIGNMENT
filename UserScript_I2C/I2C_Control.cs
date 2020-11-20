@@ -1,15 +1,112 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;//使用DllImport需要这个头文件
-using System.CodeDom;
+using System.Runtime.InteropServices; //使用DllImport需要这个头文件
 
 namespace GY7501
 {
     public class GY7501 : IDisposable
     {
+        #region Constructor
+
+        public GY7501()
+        {
+            ReadBuff = new GYI2C_DATA_INFO();
+            SendBuff = new GYI2C_DATA_INFO();
+
+            var ret = GYI2C_Open(DEV_GY7501A, 0, 0);
+            ret = GYI2C_SetMode(DEV_GY7501A, 0, 0);
+            ret = GYI2C_SetClk(DEV_GY7501A, 0, 100);
+        }
+
+        #endregion
+
+        public void DisableTx(int Channel)
+        {
+            switch (Channel)
+            {
+                case 1:
+                    control_Addr = CONTROL_TX0_ADDR;
+                    break;
+                case 2:
+                    control_Addr = CONTROL_TX1_ADDR;
+                    break;
+                case 3:
+                    control_Addr = CONTROL_TX2_ADDR;
+                    break;
+                case 4:
+                    control_Addr = CONTROL_TX3_ADDR;
+                    break;
+            }
+
+            var dataBuff = new List<byte>();
+            var valueRead = ReadValue(control_Addr);
+
+            //从寄存器读值，最后一位设为1，其余位保持现有值.
+            var valueToWrite = valueRead[0] | 1;
+            dataBuff.Add(control_Addr);
+            dataBuff.Add(Convert.ToByte(valueToWrite));
+            SetValue(dataBuff.ToArray());
+        }
+
+        public void EnableTx(int Channel)
+        {
+            switch (Channel)
+            {
+                case 1:
+                    control_Addr = CONTROL_TX0_ADDR;
+                    break;
+                case 2:
+                    control_Addr = CONTROL_TX1_ADDR;
+                    break;
+                case 3:
+                    control_Addr = CONTROL_TX2_ADDR;
+                    break;
+                case 4:
+                    control_Addr = CONTROL_TX3_ADDR;
+                    break;
+            }
+
+            var dataBuff = new List<byte>();
+            var valueRead = ReadValue(control_Addr);
+
+            //从寄存器读值，最后一位设为0，其余位保持现有值.
+            var valueToWrite = valueRead[0] & ~1;
+            dataBuff.Add(control_Addr);
+            dataBuff.Add(Convert.ToByte(valueToWrite));
+            SetValue(dataBuff.ToArray());
+        }
+
+        public void SetIbias(int Channel, double ibias)
+        {
+            if (ibias > 120)
+                throw new Exception("IBias不能超过120mA。");
+
+            switch (Channel)
+            {
+                case 1:
+                    control_Addr = ISNK_TX0_MSB_ADDR;
+                    break;
+                case 2:
+                    control_Addr = ISNK_TX1_MSB_ADDR;
+                    break;
+                case 3:
+                    control_Addr = ISNK_TX2_MSB_ADDR;
+                    break;
+                case 4:
+                    control_Addr = ISNK_TX3_MSB_ADDR;
+                    break;
+            }
+
+            var dataBuff = new List<byte>();
+
+            var Isnk = Math.Round(ibias / 0.07, 0);
+            var byteArray = BitConverter.GetBytes((ushort) Isnk);
+            dataBuff.Add(control_Addr);
+            dataBuff.Add(byteArray[1]);
+            dataBuff.Add(byteArray[0]);
+            SetValue(dataBuff.ToArray());
+        }
+
         #region Properties
 
         public const byte ISNK_TX0_MSB_ADDR = 0x05;
@@ -58,50 +155,41 @@ namespace GY7501
         public const int DEV_GY7601 = 7; //1ch-I2C
         public const int DEV_GY7602 = 8; //2ch-I2C
         public const int DEV_GY7604 = 9; //4ch-I2C
-        public const int DEV_GY7608 = 10;//8ch-I2C
+        public const int DEV_GY7608 = 10; //8ch-I2C
 
         public const int SLAVE_ADDR = 0xA6;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct GYI2C_DATA_INFO
         {
-            public byte SlaveAddr;//设备物理地址，bit7-1 有效
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 520)]//声明数组大小为520
-            public byte[] Databuffer;//Data 报文的数据
-            public UInt32 WriteNum;//需要写入的地址（字节）的总个数
-            public UInt32 ReadNum;//需要读的字节个数
-            public byte IoSel;//1 表示被选择，将被读/写，bit3－0 分别表示4 个IO 口
-            public byte IoData;//IO 口状态，bit3－0 分别表示4 个IO 口
-                               //只有与IoSel 中为1 的位相同的位值有效
-            public UInt32 DlyMsRead; //I2C 读操作时，PC 发出读命令后，延时多少ms 请求读到的数据。
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]//声明数组大小为4
+            public byte SlaveAddr; //设备物理地址，bit7-1 有效
+
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 520)] //声明数组大小为520
+            public byte[] Databuffer; //Data 报文的数据
+
+            public uint WriteNum; //需要写入的地址（字节）的总个数
+            public uint ReadNum; //需要读的字节个数
+            public byte IoSel; //1 表示被选择，将被读/写，bit3－0 分别表示4 个IO 口
+
+            public byte IoData; //IO 口状态，bit3－0 分别表示4 个IO 口
+
+            //只有与IoSel 中为1 的位相同的位值有效
+            public uint DlyMsRead; //I2C 读操作时，PC 发出读命令后，延时多少ms 请求读到的数据。
+
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)] //声明数组大小为4
             public byte[] Reserved;
         }
 
-        GYI2C_DATA_INFO ReadBuff;
-        GYI2C_DATA_INFO SendBuff;
+        private GYI2C_DATA_INFO ReadBuff;
+        private GYI2C_DATA_INFO SendBuff;
 
-        byte control_Addr = 0;
-        #endregion
+        private byte control_Addr;
 
-        #region Constructor
-
-        public GY7501()
-        {
-            ReadBuff = new GY7501.GYI2C_DATA_INFO();
-            SendBuff = new GY7501.GYI2C_DATA_INFO();
-
-            var ret = GYI2C_Open(DEV_GY7501A, 0, 0);
-            ret = GYI2C_SetMode(DEV_GY7501A, 0, 0);
-            ret = GYI2C_SetClk(DEV_GY7501A, 0, 100);
-        }
-       
         #endregion
 
         #region Static Methods
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="Devtype"></param>
         /// <param name="Devindex"></param>
@@ -114,7 +202,7 @@ namespace GY7501
         public static extern int GYI2C_Close(uint Devtype, uint Devindex, uint Reserved);
 
         /// <summary>
-        /// Set the colock frequency
+        ///     Set the colock frequency
         /// </summary>
         /// <param name="Devtype"></param>
         /// <param name="Devindex"></param>
@@ -124,7 +212,7 @@ namespace GY7501
         public static extern int GYI2C_SetClk(uint Devtype, uint Devindex, uint ClkValue);
 
         /// <summary>
-        /// set current work mode
+        ///     set current work mode
         /// </summary>
         /// <param name="Devtype">设备类型，例如DEV_GY7501A</param>
         /// <param name="Devindex">如果为串口转I2C 模块，则输入0 表示串口1，输入1 表示串口2</param>
@@ -134,107 +222,23 @@ namespace GY7501
         public static extern int GYI2C_SetMode(uint Devtype, uint Devindex, byte ModeValue);
 
         [DllImport("VCI_GYI2C.dll", EntryPoint = "GYI2C_Read")]
-        public static extern int GYI2C_Read(uint Devtype, uint Devindex,ref GYI2C_DATA_INFO pDataInfo);
+        public static extern int GYI2C_Read(uint Devtype, uint Devindex, ref GYI2C_DATA_INFO pDataInfo);
 
         [DllImport("VCI_GYI2C.dll", EntryPoint = "GYI2C_Read2")]
         public static extern int GYI2C_Read2(uint Devtype, uint Devindex, ref byte[] pDataInfo);
 
         [DllImport("VCI_GYI2C.dll", EntryPoint = "GYI2C_Write")]
-        public static extern int GYI2C_Write(uint Devtype, uint Devindex,ref GYI2C_DATA_INFO pDataInfo);
+        public static extern int GYI2C_Write(uint Devtype, uint Devindex, ref GYI2C_DATA_INFO pDataInfo);
 
         [DllImport("VCI_GYI2C.dll", EntryPoint = "GYI2C_Write2")]
         public static extern int GYI2C_Write2(uint Devtype, uint Devindex, ref byte[] pDataInfo);
 
         #endregion
 
-        public void DisableTx(int Channel)
-        {
-            switch (Channel)
-            {
-                case 1:
-                    control_Addr = CONTROL_TX0_ADDR;
-                    break;
-                case 2:
-                    control_Addr = CONTROL_TX1_ADDR;
-                    break;
-                case 3:
-                    control_Addr = CONTROL_TX2_ADDR;
-                    break;
-                case 4:
-                    control_Addr = CONTROL_TX3_ADDR;
-                    break;
-            }
-            List<byte> dataBuff = new List<byte>();
-            var valueRead = ReadValue(control_Addr);
-
-            //从寄存器读值，最后一位设为1，其余位保持现有值.
-            var valueToWrite = valueRead[0] | 1;
-            dataBuff.Add(control_Addr);
-            dataBuff.Add(Convert.ToByte(valueToWrite));
-            SetValue(dataBuff.ToArray());
-        }
-
-        public void EnableTx(int Channel)
-        {
-            switch (Channel)
-            {
-                case 1:
-                    control_Addr = CONTROL_TX0_ADDR;
-                    break;
-                case 2:
-                    control_Addr = CONTROL_TX1_ADDR;
-                    break;
-                case 3:
-                    control_Addr = CONTROL_TX2_ADDR;
-                    break;
-                case 4:
-                    control_Addr = CONTROL_TX3_ADDR;
-                    break;
-            }
-            List<byte> dataBuff = new List<byte>();
-            var valueRead = ReadValue(control_Addr);
-
-            //从寄存器读值，最后一位设为0，其余位保持现有值.
-            var valueToWrite = valueRead[0] & ~1;
-            dataBuff.Add(control_Addr);
-            dataBuff.Add(Convert.ToByte(valueToWrite));
-            SetValue(dataBuff.ToArray());
-        }
-
-        public void SetIbias(int Channel, double ibias)
-        {
-            if (ibias > 120)
-                throw new Exception("IBias不能超过120mA。");
-
-            switch (Channel)
-            {
-                case 1:
-                    control_Addr = ISNK_TX0_MSB_ADDR;
-                    break;
-                case 2:
-                    control_Addr = ISNK_TX1_MSB_ADDR;
-                    break;
-                case 3:
-                    control_Addr = ISNK_TX2_MSB_ADDR;
-                    break;
-                case 4:
-                    control_Addr = ISNK_TX3_MSB_ADDR;
-                    break;
-            }
-            List<byte> dataBuff = new List<byte>();
-
-            var Isnk = Math.Round(ibias / 0.07, 0);
-            byte[] byteArray = BitConverter.GetBytes((ushort)(Isnk));
-            dataBuff.Add(control_Addr);
-            dataBuff.Add(byteArray[1]);
-            dataBuff.Add(byteArray[0]);
-            SetValue(dataBuff.ToArray());
-        }
-
         #region private Methods
 
         /// <summary>
-        /// 向寄存器写入数据
+        ///     向寄存器写入数据
         /// </summary>
         /// <param name="regAddr">寄存器地址</param>
         /// <param name="Value">要写入的值</param>
@@ -244,38 +248,30 @@ namespace GY7501
             SendBuff.SlaveAddr = SLAVE_ADDR;
             SendBuff.Databuffer = new byte[520];
 
-            for (int i = 0; i < dataBuff.Length; i++)
-            {
-                SendBuff.Databuffer[i] = dataBuff[i];
-            }
-             SendBuff.WriteNum =(uint) dataBuff.Length;
+            for (var i = 0; i < dataBuff.Length; i++) SendBuff.Databuffer[i] = dataBuff[i];
+            SendBuff.WriteNum = (uint) dataBuff.Length;
 
             SendBuff.ReadNum = 0;
-            if (GYI2C_Write(DEV_GY7501A, 0, ref SendBuff) != 1)
-            {
-                throw new Exception("GYI2C write error!");
-            }
+            if (GYI2C_Write(DEV_GY7501A, 0, ref SendBuff) != 1) throw new Exception("GYI2C write error!");
         }
 
         /// <summary>
-        /// 从寄存器读取数值
+        ///     从寄存器读取数值
         /// </summary>
         /// <param name="regAddr">寄存器地址</param>
         /// <param name="readByteNum">需要读取的数据的字节数</param>
         /// <returns>读取到的数据组</returns>
-        private byte[] ReadValue(byte regAddr,uint readByteNum=1)
+        private byte[] ReadValue(byte regAddr, uint readByteNum = 1)
         {
-            ReadBuff.SlaveAddr = SLAVE_ADDR; ;
+            ReadBuff.SlaveAddr = SLAVE_ADDR;
+            ;
             ReadBuff.Databuffer = new byte[520];
             ReadBuff.Databuffer[0] = regAddr;
             ReadBuff.WriteNum = 1;
             ReadBuff.ReadNum = readByteNum;
             ReadBuff.DlyMsRead = 1;
 
-            if (GY7501.GYI2C_Read(GY7501.DEV_GY7501A, 0, ref ReadBuff) == 0)
-            {
-                throw new Exception("读取数据出错！");
-            }
+            if (GYI2C_Read(DEV_GY7501A, 0, ref ReadBuff) == 0) throw new Exception("读取数据出错！");
             return ReadBuff.Databuffer;
         }
 
@@ -285,9 +281,8 @@ namespace GY7501
             {
                 GYI2C_Close(DEV_GY7501A, 0, 0);
             }
-            catch(Exception)
+            catch (Exception)
             {
-
             }
         }
 

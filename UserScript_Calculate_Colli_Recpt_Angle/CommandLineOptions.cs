@@ -27,8 +27,6 @@ namespace UserScript
         public string PrefixVarRead { get; } = "RECEPT_X_";
 
         public string PrefixVarWrite { get; } = "RY";
-
-        
     }
 
     [Verb("rx", HelpText = "根据准直Receptacle Y轴偏差计算RX修正角度。")]
@@ -45,8 +43,5 @@ namespace UserScript
         public string PrefixVarRead { get; } = "RECEPT_Y_";
 
         public string PrefixVarWrite { get; } = "RX";
-
     }
-
-
 }
