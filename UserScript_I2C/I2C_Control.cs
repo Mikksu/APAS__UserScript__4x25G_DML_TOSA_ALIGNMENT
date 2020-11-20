@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices; //使用DllImport需要这个头文件
 
+// ReSharper disable once CheckNamespace
 namespace GY7501
 {
+    // ReSharper disable once InconsistentNaming
     public class GY7501 : IDisposable
     {
         #region Constructor
@@ -13,16 +15,16 @@ namespace GY7501
             ReadBuff = new GYI2C_DATA_INFO();
             SendBuff = new GYI2C_DATA_INFO();
 
-            var ret = GYI2C_Open(DEV_GY7501A, 0, 0);
-            ret = GYI2C_SetMode(DEV_GY7501A, 0, 0);
-            ret = GYI2C_SetClk(DEV_GY7501A, 0, 100);
+            GYI2C_Open(DEV_GY7501A, 0, 0);
+            GYI2C_SetMode(DEV_GY7501A, 0, 0);
+            GYI2C_SetClk(DEV_GY7501A, 0, 100);
         }
 
         #endregion
 
-        public void DisableTx(int Channel)
+        public void DisableTx(int channel)
         {
-            switch (Channel)
+            switch (channel)
             {
                 case 1:
                     control_Addr = CONTROL_TX0_ADDR;
@@ -48,9 +50,9 @@ namespace GY7501
             SetValue(dataBuff.ToArray());
         }
 
-        public void EnableTx(int Channel)
+        public void EnableTx(int channel)
         {
-            switch (Channel)
+            switch (channel)
             {
                 case 1:
                     control_Addr = CONTROL_TX0_ADDR;
@@ -76,12 +78,12 @@ namespace GY7501
             SetValue(dataBuff.ToArray());
         }
 
-        public void SetIbias(int Channel, double ibias)
+        public void SetIBias(int channel, double iBias)
         {
-            if (ibias > 120)
+            if (iBias > 120)
                 throw new Exception("IBias不能超过120mA。");
 
-            switch (Channel)
+            switch (channel)
             {
                 case 1:
                     control_Addr = ISNK_TX0_MSB_ADDR;
@@ -99,8 +101,8 @@ namespace GY7501
 
             var dataBuff = new List<byte>();
 
-            var Isnk = Math.Round(ibias / 0.07, 0);
-            var byteArray = BitConverter.GetBytes((ushort) Isnk);
+            var isnk = Math.Round(iBias / 0.07, 0);
+            var byteArray = BitConverter.GetBytes((ushort) isnk);
             dataBuff.Add(control_Addr);
             dataBuff.Add(byteArray[1]);
             dataBuff.Add(byteArray[0]);
@@ -146,18 +148,18 @@ namespace GY7501
         public const byte LDD_TX3_ADDR = 0x37;
         public const byte CONTROL_TX3_ADDR = 0x39;
 
-        public const int DEV_GY7501A = 1; //1ch-I2C
-        public const int DEV_GY7512 = 2; //2ch-I2C
-        public const int DEV_GY7514 = 3; //4ch-I2C
-        public const int DEV_GY7518 = 4; //8ch-I2C
-        public const int DEV_GY7503 = 5; //1ch-I2C
-        public const int DEV_GY7506 = 6; //1ch-I2C,module/
-        public const int DEV_GY7601 = 7; //1ch-I2C
-        public const int DEV_GY7602 = 8; //2ch-I2C
-        public const int DEV_GY7604 = 9; //4ch-I2C
-        public const int DEV_GY7608 = 10; //8ch-I2C
+        public const uint DEV_GY7501A = 1; //1ch-I2C
+        public const uint DEV_GY7512 = 2; //2ch-I2C
+        public const uint DEV_GY7514 = 3; //4ch-I2C
+        public const uint DEV_GY7518 = 4; //8ch-I2C
+        public const uint DEV_GY7503 = 5; //1ch-I2C
+        public const uint DEV_GY7506 = 6; //1ch-I2C,module/
+        public const uint DEV_GY7601 = 7; //1ch-I2C
+        public const uint DEV_GY7602 = 8; //2ch-I2C
+        public const uint DEV_GY7604 = 9; //4ch-I2C
+        public const uint DEV_GY7608 = 10; //8ch-I2C
 
-        public const int SLAVE_ADDR = 0xA6;
+        public const uint SLAVE_ADDR = 0xA6;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct GYI2C_DATA_INFO
@@ -240,12 +242,9 @@ namespace GY7501
         /// <summary>
         ///     向寄存器写入数据
         /// </summary>
-        /// <param name="regAddr">寄存器地址</param>
-        /// <param name="Value">要写入的值</param>
-        /// <param name="writeNum">要写入的字节数，要将寄存器地址所占自己也计算在内</param>
         private void SetValue(byte[] dataBuff)
         {
-            SendBuff.SlaveAddr = SLAVE_ADDR;
+            SendBuff.SlaveAddr = (byte)SLAVE_ADDR;
             SendBuff.Databuffer = new byte[520];
 
             for (var i = 0; i < dataBuff.Length; i++) SendBuff.Databuffer[i] = dataBuff[i];
@@ -263,8 +262,7 @@ namespace GY7501
         /// <returns>读取到的数据组</returns>
         private byte[] ReadValue(byte regAddr, uint readByteNum = 1)
         {
-            ReadBuff.SlaveAddr = SLAVE_ADDR;
-            ;
+            ReadBuff.SlaveAddr = (byte)SLAVE_ADDR;
             ReadBuff.Databuffer = new byte[520];
             ReadBuff.Databuffer[0] = regAddr;
             ReadBuff.WriteNum = 1;
@@ -279,7 +277,7 @@ namespace GY7501
         {
             try
             {
-                GYI2C_Close(DEV_GY7501A, 0, 0);
+                //GYI2C_Close(DEV_GY7501A, (uint)0, (uint)0);
             }
             catch (Exception)
             {

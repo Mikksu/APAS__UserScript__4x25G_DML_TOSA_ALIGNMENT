@@ -29,13 +29,14 @@ namespace UserScript
 
                 client.__SSC_Connect();
 
-                var parser = new Parser(){Settings =
+                var helpWriter = new StringWriter();
+                var parser = new Parser(with =>
                 {
-                    CaseSensitive = false,
-                    EnableDashDash = true,
-                    HelpWriter = new StringWriter(helpText)
-                }};
-                
+                    with.CaseSensitive = false;
+                    with.EnableDashDash = true;
+                    with.HelpWriter = helpWriter;
+                });
+
                 parser.ParseArguments<TurnOnOptions, TurnOffOptions>(args)
                     .MapResult(
                         (TurnOnOptions opts) =>
@@ -50,11 +51,17 @@ namespace UserScript
                         },
                         errs =>
                         {
-                            var err = $"脚本启动参数错误。{helpText}";
+                            var myErr = "";
+                            if(errs.IsHelp() || errs.IsVersion())
+                                myErr =  helpWriter.ToString();
+                            else
+                            {
+                                myErr = $"启动参数错误。\r\n{helpWriter}";
+                            }
 
-                            client.__SSC_LogError(err);
+                            client.__SSC_LogError(myErr);
 
-                            throw new Exception(err);
+                            throw new Exception(myErr);
                         });
 
                 client.__SSC_Disconnect();
