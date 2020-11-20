@@ -39,7 +39,7 @@ namespace UserScript
                 // perform the user process.
                 UserProc(client);
 
-                client.__SSC_Disonnect();
+                client.__SSC_Disconnect();
             }
             catch (AggregateException ae)
             {

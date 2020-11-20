@@ -57,7 +57,7 @@ namespace UserScript
                             throw new Exception(err);
                         });
 
-                client.__SSC_Disonnect();
+                client.__SSC_Disconnect();
             }
             catch (AggregateException ae)
             {

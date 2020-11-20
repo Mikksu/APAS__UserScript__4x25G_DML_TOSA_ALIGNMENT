@@ -51,14 +51,14 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
-  <xs:element name="__SSC_ShowWarningMessagBox">
+  <xs:element name="__SSC_ShowWarningMessageBox">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="__SSC_ShowWarningMessagBoxResponse">
+  <xs:element name="__SSC_ShowWarningMessageBoxResponse">
     <xs:complexType>
       <xs:sequence />
     </xs:complexType>
@@ -123,12 +123,12 @@
       <xs:sequence />
     </xs:complexType>
   </xs:element>
-  <xs:element name="__SSC_Disonnect">
+  <xs:element name="__SSC_Disconnect">
     <xs:complexType>
       <xs:sequence />
     </xs:complexType>
   </xs:element>
-  <xs:element name="__SSC_DisonnectResponse">
+  <xs:element name="__SSC_DisconnectResponse">
     <xs:complexType>
       <xs:sequence />
     </xs:complexType>

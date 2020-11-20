@@ -43,11 +43,11 @@
   <wsdl:message name="ISystemService___SSC_ShowMessageBox_OutputMessage">
     <wsdl:part name="parameters" element="tns:__SSC_ShowMessageBoxResponse" />
   </wsdl:message>
-  <wsdl:message name="ISystemService___SSC_ShowWarningMessagBox_InputMessage">
-    <wsdl:part name="parameters" element="tns:__SSC_ShowWarningMessagBox" />
+  <wsdl:message name="ISystemService___SSC_ShowWarningMessageBox_InputMessage">
+    <wsdl:part name="parameters" element="tns:__SSC_ShowWarningMessageBox" />
   </wsdl:message>
-  <wsdl:message name="ISystemService___SSC_ShowWarningMessagBox_OutputMessage">
-    <wsdl:part name="parameters" element="tns:__SSC_ShowWarningMessagBoxResponse" />
+  <wsdl:message name="ISystemService___SSC_ShowWarningMessageBox_OutputMessage">
+    <wsdl:part name="parameters" element="tns:__SSC_ShowWarningMessageBoxResponse" />
   </wsdl:message>
   <wsdl:message name="ISystemService___SSC_ShowErrorMessageBox_InputMessage">
     <wsdl:part name="parameters" element="tns:__SSC_ShowErrorMessageBox" />
@@ -79,11 +79,11 @@
   <wsdl:message name="ISystemService___SSC_Connect_OutputMessage">
     <wsdl:part name="parameters" element="tns:__SSC_ConnectResponse" />
   </wsdl:message>
-  <wsdl:message name="ISystemService___SSC_Disonnect_InputMessage">
-    <wsdl:part name="parameters" element="tns:__SSC_Disonnect" />
+  <wsdl:message name="ISystemService___SSC_Disconnect_InputMessage">
+    <wsdl:part name="parameters" element="tns:__SSC_Disconnect" />
   </wsdl:message>
-  <wsdl:message name="ISystemService___SSC_Disonnect_OutputMessage">
-    <wsdl:part name="parameters" element="tns:__SSC_DisonnectResponse" />
+  <wsdl:message name="ISystemService___SSC_Disconnect_OutputMessage">
+    <wsdl:part name="parameters" element="tns:__SSC_DisconnectResponse" />
   </wsdl:message>
   <wsdl:message name="ISystemService___SSC_WriteVariable_InputMessage">
     <wsdl:part name="parameters" element="tns:__SSC_WriteVariable" />
@@ -324,9 +324,9 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowMessageBox" message="tns:ISystemService___SSC_ShowMessageBox_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowMessageBoxResponse" message="tns:ISystemService___SSC_ShowMessageBox_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="__SSC_ShowWarningMessagBox">
-      <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowWarningMessagBox" message="tns:ISystemService___SSC_ShowWarningMessagBox_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowWarningMessagBoxResponse" message="tns:ISystemService___SSC_ShowWarningMessagBox_OutputMessage" />
+    <wsdl:operation name="__SSC_ShowWarningMessageBox">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowWarningMessageBox" message="tns:ISystemService___SSC_ShowWarningMessageBox_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowWarningMessageBoxResponse" message="tns:ISystemService___SSC_ShowWarningMessageBox_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="__SSC_ShowErrorMessageBox">
       <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_ShowErrorMessageBox" message="tns:ISystemService___SSC_ShowErrorMessageBox_InputMessage" />
@@ -348,9 +348,9 @@
       <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_Connect" message="tns:ISystemService___SSC_Connect_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_ConnectResponse" message="tns:ISystemService___SSC_Connect_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="__SSC_Disonnect">
-      <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_Disonnect" message="tns:ISystemService___SSC_Disonnect_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_DisonnectResponse" message="tns:ISystemService___SSC_Disonnect_OutputMessage" />
+    <wsdl:operation name="__SSC_Disconnect">
+      <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_Disconnect" message="tns:ISystemService___SSC_Disconnect_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/ISystemService/__SSC_DisconnectResponse" message="tns:ISystemService___SSC_Disconnect_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="__SSC_WriteVariable">
       <wsdl:input wsaw:Action="http://tempuri.org/ISystemService/__SSC_WriteVariable" message="tns:ISystemService___SSC_WriteVariable_InputMessage" />
@@ -541,8 +541,8 @@
         <soap12:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="__SSC_ShowWarningMessagBox">
-      <soap12:operation soapAction="http://tempuri.org/ISystemService/__SSC_ShowWarningMessagBox" style="document" />
+    <wsdl:operation name="__SSC_ShowWarningMessageBox">
+      <soap12:operation soapAction="http://tempuri.org/ISystemService/__SSC_ShowWarningMessageBox" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>
@@ -595,8 +595,8 @@
         <soap12:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="__SSC_Disonnect">
-      <soap12:operation soapAction="http://tempuri.org/ISystemService/__SSC_Disonnect" style="document" />
+    <wsdl:operation name="__SSC_Disconnect">
+      <soap12:operation soapAction="http://tempuri.org/ISystemService/__SSC_Disconnect" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>
