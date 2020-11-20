@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading;
-using UserScript.CamRAC;
 using UserScript.SystemService;
 
 namespace UserScript
 {
-    internal partial class APAS_UserScript
+    internal static partial class ApasUserScript
     {
         #region User Process
 
@@ -16,80 +15,74 @@ namespace UserScript
         ///     请在以下函数中定义您的工艺流程。
         /// </summary>
         /// <param name="Apas"></param>
-        /// <param name="Camera"></param>
+        /// <param name="channel"></param>
+        /// <param name="iBias"></param>
         /// <returns></returns>
-        private static void UserProc(ISystemService Apas, CamRemoteAccessContractClient Camera = null)
+        private static void TurnOn(ISystemService Apas, int channel, double iBias)
         {
-            if (int.TryParse(PARAM_CH, out var channel) == false)
-            {
-                var err = "参数[2]错误，通道必须为数字。";
-                Apas.__SSC_LogError(err);
-                throw new Exception(err);
-            }
-
+            string err;
+            
             if (channel < 1 || channel > 4)
             {
-                var err = "参数[2]错误，通道值范围必须为1 - 4。";
+                err = "通道参数错误，通道值必须为1 - 4。";
                 Apas.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
-            if (PARAM_FUNC == "ON")
+            if (iBias < 0 || iBias > 150)
             {
-                if (double.TryParse(PARAM_IBIAS, out var iBias) == false)
-                {
-                    var err = "参数[3]错误，IBias必须为数字。";
-                    Apas.__SSC_LogError(err);
-                    throw new Exception(err);
-                }
+                err = "IBias参数错误，IBias必须为0mA - 150mA。";
+                Apas.__SSC_LogError(err);
+                throw new Exception(err);
+            }
 
-                // 打开IBias
-                var iic = new GY7501.GY7501();
-
+            // 打开IBias
+            using (var iic = new GY7501.GY7501())
+            {
                 iic.SetIbias(channel, iBias);
                 Thread.Sleep(100);
 
                 iic.EnableTx(channel);
                 Thread.Sleep(2000);
+            }
 
-                // 检测电流
-                var icc2 = Apas.__SSC_MeasurableDevice_Read("RIGOL DP800s,CH2电流");
-                if (icc2 < 0.035)
-                {
-                    var err = "ICC2电流过小。";
-                    Apas.__SSC_LogError(err);
-                    throw new Exception(err);
-                }
-            }
-            else if (PARAM_FUNC == "OFF")
+            // 检测电流
+            var icc2 = Apas.__SSC_MeasurableDevice_Read("RIGOL DP800s,CH2电流");
+            if (!(icc2 < 0.035)) return;
+
+            // throw exception if ICC2 is too small.
+            err = "ICC2电流过小。";
+            Apas.__SSC_LogError(err);
+            throw new Exception(err);
+        }
+
+        private static void TurnOff(ISystemService Apas, int channel)
+        {
+            if (channel < 0 || channel > 4)
             {
-                var iic = new GY7501.GY7501();
-                iic.DisableTx(channel);
-            }
-            else
-            {
-                var err = "参数[1]错误，仅支持ON和OFF。";
+                var err = "通道参数错误，通道值必须为0 - 4。";
                 Apas.__SSC_LogError(err);
                 throw new Exception(err);
             }
+
+            using (var iic = new GY7501.GY7501())
+            {
+                if (channel > 0)
+                {
+                    // turn off the specified channel.
+                    iic.DisableTx(channel);
+                }
+                else
+                {
+                    // turn off all channels.
+                    for (int i = 0; i < 4; i++)
+                    {
+                        iic.DisableTx(i);
+                        Thread.Sleep(100);
+                    }
+                }
+            }
         }
-
-        #endregion
-
-        #region Variables
-
-        /// <summary>
-        ///     DP800名称
-        /// </summary>
-        private const string DP800_CAPTION = "RIGOL DP800s";
-
-        private const string DP800_READ_CURR_CH1 = "RIGOL DP800s,CH1电流";
-        private const string DP800_READ_CURR_CH2 = "RIGOL DP800s,CH2电流";
-        private const string DP800_READ_CURR_CH3 = "RIGOL DP800s,CH3电流";
-
-        #endregion
-
-        #region Private Methods
 
         #endregion
     }

@@ -1,5 +1,8 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
+using CommandLine;
 using UserScript.SystemService;
 
 namespace UserScript
@@ -13,21 +16,12 @@ namespace UserScript
     ///     =                                                               =
     ///     =================================================================
     /// </summary>
-    internal partial class APAS_UserScript
+    internal static partial class ApasUserScript
     {
-        /// <summary>
-        ///     parameter define:
-        ///     ON [1-4] [50],
-        ///     OFF [1-4]
-        /// </summary>
-        private static string PARAM_FUNC = "";
-
-        private static string PARAM_CH = "";
-        private static string PARAM_IBIAS = "";
-
         private static void Main(string[] args)
         {
             var client = new SystemServiceClient();
+            var helpText = new StringBuilder();
 
             try
             {
@@ -35,21 +29,33 @@ namespace UserScript
 
                 client.__SSC_Connect();
 
-                if (args.Length < 2 || args.Length > 3)
+                ParserSettings settings = new ParserSettings()
                 {
-                    var err = "未指定参数，或参数数量错误。";
-                    client.__SSC_LogError(err);
-                    throw new Exception(err);
-                }
+                    CaseSensitive = false,
+                    EnableDashDash = true,
+                    HelpWriter = new StringWriter(helpText)
+                };
+                    
+                Parser.Default.ParseArguments<TurnOnOptions, TurnOffOptions>(args)
+                    .MapResult(
+                        (TurnOnOptions opts) =>
+                        {
+                            TurnOn(client, opts.Channel, opts.IBias);
+                            return 0;
+                        },
+                        (TurnOffOptions opts) =>
+                        {
+                            TurnOff(client, opts.Channel);
+                            return 0;
+                        },
+                        errs =>
+                        {
+                            var errmsg = $"脚本启动参数错误。{helpText}";
 
-                PARAM_FUNC = args[0];
-                PARAM_CH = args[1];
+                            client.__SSC_LogError(errmsg);
 
-                if (args.Length == 3)
-                    PARAM_IBIAS = args[2];
-
-                // perform the user process.
-                UserProc(client);
+                            throw new Exception(errmsg);
+                        });
 
                 client.__SSC_Disonnect();
             }
