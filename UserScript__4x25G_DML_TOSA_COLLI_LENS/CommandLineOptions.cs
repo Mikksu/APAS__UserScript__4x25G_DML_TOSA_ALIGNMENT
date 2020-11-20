@@ -4,9 +4,6 @@ namespace UserScript
 {
     public class Options
     {
-        //[Option('h', "help", Required = false, HelpText = "打印帮助文件")]
-        //public bool IsHelpTextRequired { get; set; }
-
         #region 耦合参数定义
 
         [Option('a', "pth-rascan", Required = false, Default = -25,
@@ -46,7 +43,6 @@ namespace UserScript
         public double PowerThreDualLineScanP { get; set; }
 
         #endregion
-
 
         #region 耦合使用的配置文件名定义
 
