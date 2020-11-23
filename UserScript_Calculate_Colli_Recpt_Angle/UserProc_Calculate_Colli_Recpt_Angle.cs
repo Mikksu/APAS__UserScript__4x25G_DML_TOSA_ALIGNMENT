@@ -18,46 +18,57 @@ namespace UserScript
         ///     Please write your process in the following method.
         ///     请在以下函数中定义您的工艺流程。
         /// </summary>
-        /// <param name="Apas"></param>
+        /// <param name="apas"></param>
+        /// <param name="camera"></param>
+        /// <param name="opts"></param>
+        /// <exception cref="Exception"></exception>
         /// <returns></returns>
-        private static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null,
+        private static void UserProc(ISystemService apas, CamRemoteAccessContractClient camera = null,
             IOptions opts = null)
         {
+            if(opts ==  null) throw new ArgumentException(nameof(opts));
+            
             var var1 = $"{opts.PrefixVarRead}CH0";
             var var2 = $"{opts.PrefixVarRead}CH3";
             object strch0, strch3;
 
             try
             {
-                strch0 = Apas.__SSC_ReadVariable(var1);
+                strch0 = apas.__SSC_ReadVariable(var1);
             }
             catch (NullReferenceException)
             {
                 var err = $"无法找到变量[{var1}]";
-                Apas?.__SSC_LogError(err);
+                apas?.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
             try
             {
-                strch3 = Apas.__SSC_ReadVariable(var2);
+                strch3 = apas.__SSC_ReadVariable(var2);
             }
             catch (NullReferenceException)
             {
                 var err = $"无法找到变量[{var2}]";
-                Apas?.__SSC_LogError(err);
+                apas?.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
-            if (double.TryParse(strch0.ToString(), out var ch0) == false) throw new Exception($"读取变量[{var1}]时发生错误。");
+            if (double.TryParse(strch0.ToString(), out var ch0) == false) 
+                throw new Exception($"读取变量[{var1}]时发生错误。");
 
-            if (double.TryParse(strch3.ToString(), out var ch3) == false)
-            {
+            if (double.TryParse(strch3.ToString(), out var ch3) == false) 
                 throw new Exception($"读取变量[{var2}]时发生错误。");
-            }
 
-            var angle = (ch0 - ch3) / 3 / (opts.Coeff * opts.Pitch);
-            Apas.__SSC_WriteVariable(opts.PrefixVarWrite, angle);
+            // convert to um
+            ch0 /= 1000;
+            ch3 /= 1000;
+
+            var maxDiff = ch0 - ch3;
+            
+            var angle = maxDiff / 3 / (opts.Coeff * opts.Pitch);
+            apas.__SSC_WriteVariable(opts.VarNameTheta, angle);
+            apas.__SSC_WriteVariable(opts.VarNamePosMaxDiff, maxDiff);
         }
 
         #endregion

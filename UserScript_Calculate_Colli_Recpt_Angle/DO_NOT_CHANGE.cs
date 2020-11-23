@@ -1,6 +1,9 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using CommandLine;
+using CommandLine.Text;
 using UserScript.SystemService;
 
 namespace UserScript
@@ -26,26 +29,39 @@ namespace UserScript
                 var client = new SystemServiceClient();
                 client.Open();
 
-                Parser.Default.ParseArguments<CalRYOptions, CalRXOptions>(args)
+                var helpText = new StringBuilder();
+                var stream = new StringWriter(helpText);
+                var parser = new Parser(config =>
+                {
+                    config.EnableDashDash = true;
+                    config.CaseSensitive = false;
+                    config.HelpWriter = stream;
+                });
+
+                parser.ParseArguments<CalRYOptions, CalRXOptions>(args)
                     .MapResult(
-                      (CalRYOptions opts) =>
-                      {
-                          UserProc(null, opts: opts);
-                          return 0;
-                      },
-                      (CalRXOptions opts) =>
-                      {
-                          UserProc(null, opts: opts);
-                          return 0;
-                      },
-                      errs =>
-                      {
-                               var errmsg = "脚本启动参数错误。";
+                        (CalRYOptions opts) =>
+                        {
+                            UserProc(client, opts: opts);
+                            return 0;
+                        },
+                        (CalRXOptions opts) =>
+                        {
+                            UserProc(client, opts: opts);
+                            return 0;
+                        },
+                        errs =>
+                        {
+                            var errmsg = "";
 
-                               client.__SSC_LogError(errmsg);
-
-                               throw new Exception(errmsg);
-                      });
+                            if (errs.IsHelp() || errs.IsVersion())
+                                errmsg = "";
+                            else
+                                errmsg = "脚本启动参数错误。\r\n";
+                            
+                            client.__SSC_LogError(errmsg + helpText.ToString());
+                            throw new Exception(errmsg + helpText.ToString());
+                        });
             }
             catch (AggregateException ae)
             {
