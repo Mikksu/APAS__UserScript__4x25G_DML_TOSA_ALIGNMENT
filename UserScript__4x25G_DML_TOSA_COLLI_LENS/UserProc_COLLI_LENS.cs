@@ -91,6 +91,8 @@ namespace UserScript
 
                 sw.Stop();
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+
+                swTotal.Stop();
                 Apas.__SSC_LogInfo($"总耗时: {swTotal.Elapsed.TotalSeconds:F1}s");
 
 
@@ -186,14 +188,14 @@ namespace UserScript
 
                 if (cycle == 1)
                 {
-                    Service.__SSC_LogWarn("搜索失败，Z轴前进20um重新搜索...");
+                    Service.__SSC_LogWarn("搜索失败，Z轴-20um重新搜索...");
                     Service.__SSC_MoveAxis("Lens", "Z", SSC_MoveMode.REL, 100, -20);
                     goto __redo_rectscan;
                 }
 
                 if (cycle == 2)
                 {
-                    Service.__SSC_LogWarn("搜索失败，Z轴前进10um重新搜索...");
+                    Service.__SSC_LogWarn("搜索失败，Z轴+40um重新搜索...");
                     Service.__SSC_MoveAxis("Lens", "Z", SSC_MoveMode.REL, 100, 40);
                     goto __redo_rectscan;
                 }
@@ -279,7 +281,7 @@ namespace UserScript
                     var lastlastPower = powerZHistory[powerZHistory.Count - 2].Y;
                     var diff = lastPower - lastlastPower;
                     Service.__SSC_LogInfo($"功率差: {diff:F2}dBm/{lastPower:F2}dBm/{lastlastPower:F2}dBm");
-                    if (diff < 0)
+                    if (diff < -1)
                     {
                         Service.__SSC_LogInfo("功率降低，开始反向搜索...");
                         nextZMoveStep *= -1;

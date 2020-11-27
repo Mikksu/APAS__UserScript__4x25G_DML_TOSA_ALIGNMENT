@@ -19,7 +19,7 @@ namespace UserScript
         /// <returns></returns>
         private static void UserProc(SystemServiceClient Apas, CamRemoteAccessContractClient Camera = null)
         {
-            if (string.IsNullOrEmpty(PARAM) || PARAM != "ON" && PARAM != "OFF")
+            if (string.IsNullOrEmpty(PARAM) || PARAM.ToUpper() != "ON" && PARAM.ToUpper() != "OFF")
             {
                 var err = "参数错误，请输入参数[ON]或[OFF]。";
                 Apas.__SSC_LogError(err);

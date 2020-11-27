@@ -25,8 +25,9 @@ namespace UserScript
             {
                 var sw = new Stopwatch();
                 var swTotal = new Stopwatch();
-                swTotal.Start();
 
+                swTotal.Start();
+                sw.Start();
                 // STEP 3: Profile-ND
                 Step3(Apas);
                 sw.Stop();
@@ -37,6 +38,8 @@ namespace UserScript
                 Step5(Apas);
                 sw.Stop();
                 Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+
+                swTotal.Stop();
                 Apas.__SSC_LogInfo($"总耗时: {swTotal.Elapsed.TotalSeconds:F1}s");
 
                 // 检查光功率是否达标
