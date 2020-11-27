@@ -131,9 +131,7 @@
     <WCFMetadataStorage Include="Connected Services\CamRAC\" />
     <WCFMetadataStorage Include="Connected Services\SystemService\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CommandLine\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Connected Services\SystemService\configuration91.svcinfo" />
   </ItemGroup>

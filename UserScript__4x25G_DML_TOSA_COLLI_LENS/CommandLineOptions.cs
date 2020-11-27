@@ -46,27 +46,27 @@ namespace UserScript
 
         #region 耦合使用的配置文件名定义
 
-        [Option('l', "profilename--focusscan-colli-lens", Required = false, Default = "准直Lens_XY_0.2_20_Z_1_20",
+        [Option('l', "profilename--focusscan-colli-lens", Required = false, Default = "LD_Lens_XY_0.2_20_Z_1_20",
             HelpText = "焦距扫描Lens端扫描使用的配置文件")]
         public string ProfileNameFocusScanColliLens { get; set; }
 
-        [Option('m', "profilename-focusscan-colli-recept", Required = false, Default = "准直Rept_XY_5_200",
+        [Option('m', "profilename-focusscan-colli-recept", Required = false, Default = "准直Recept_XY_5_200",
             HelpText = "焦距扫描Receptacle端扫描使用的配置文件")]
         public string ProfileNameFocusScanColliRecept { get; set; }
 
-        [Option('q', "profilename-dual-lscan-lens", Required = false, Default = "准直Lens_XY_0.2_10_Z_0.5_10",
+        [Option('q', "profilename-dual-lscan-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
             HelpText = "慢速扫描Lens端扫描使用的配置文件")]
         public string ProfileNameLineScanLens { get; set; }
 
-        [Option('r', "profilename-dual-lscan-colli-recept", Required = false, Default = "准直Rept_XY_5_200",
+        [Option('r', "profilename-dual-lscan-colli-recept", Required = false, Default = "准直Recept_XY_5_200",
             HelpText = "双边慢速扫描Receptacle端扫描使用的配置文件")]
         public string ProfileNameDualLineScanColliRecept { get; set; }
 
-        [Option('s', "profilename-dual-lscan-colli-lens", Required = false, Default = "准直Lens_XY_0.2_10_Z_0.5_10",
+        [Option('s', "profilename-dual-lscan-colli-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
             HelpText = "双边慢速扫描Lens端扫描使用的配置文件")]
         public string ProfileNameDualLineScanColliLens { get; set; }
 
-        [Option('t', "profilename-hillclimb", Required = false, Default = "准直Lens_FineTune",
+        [Option('t', "profilename-hillclimb", Required = false, Default = "LD_Lens_FineTune",
             HelpText = "爬山扫描使用的配置文件")]
         public string ProfileNameHillClimb { get; set; }
 

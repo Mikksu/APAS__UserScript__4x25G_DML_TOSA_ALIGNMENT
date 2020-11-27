@@ -105,7 +105,7 @@ namespace UserScript
         {
             var powerHistory = new Queue<double>();
             var cycle = 0;
-            var profileName = "准直Lens_XY_0.2_10_Z_0.5_10";
+            var profileName = "LD_Lens_XY_0.2_10_Z_0.5_10";
 
             Service.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
 
@@ -165,7 +165,7 @@ namespace UserScript
             try
             {
                 Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoHillClimb("准直Lens_FineTune");
+                Apas.__SSC_DoHillClimb("LD_Lens_FineTune");
             }
             catch (Exception)
             {

@@ -167,7 +167,7 @@ namespace UserScript
 
             PerformAlignment(Service,
                 new Func<string, object>[] {Service.__SSC_DoRectAreaScan},
-                new[] {"准直Lens_初始光"},
+                new[] {"LD_Lens_初始光"},
                 SSC_PMRangeEnum.RANGE1, double.NaN, 2);
 
             Thread.Sleep(500);
