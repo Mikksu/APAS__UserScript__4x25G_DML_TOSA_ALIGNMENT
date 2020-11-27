@@ -42,31 +42,39 @@ namespace UserScript
             HelpText = "双边慢速扫描退出的阈值功率最大值，如果最后两次扫描功率之差小于此值时退出耦合，单位dBm")]
         public double PowerThreDualLineScanP { get; set; }
 
+        [Option("powermeter", Required = false, Default = "PM1906A2",
+            HelpText = "读取功率使用的功率计名称")]
+        public string PowerMeterCaption { get; set; }
+
         #endregion
 
         #region 耦合使用的配置文件名定义
 
-        [Option('l', "profilename--focusscan-colli-lens", Required = false, Default = "LD_Lens_XY_0.2_20_Z_1_20",
+        [Option("profilename--blindsearch-lens", Required = false, Default = "LD_Lens_初始光",
+           HelpText = "Lens找初始光使用的配置文件")]
+        public string ProfileNameBlindSearch { get; set; }
+
+        [Option("profilename--focusscan-lens", Required = false, Default = "LD_Lens_XY_0.2_20_Z_1_20",
             HelpText = "焦距扫描Lens端扫描使用的配置文件")]
-        public string ProfileNameFocusScanColliLens { get; set; }
+        public string ProfileNameFocusScanLens { get; set; }
 
-        [Option('m', "profilename-focusscan-colli-recept", Required = false, Default = "准直Recept_XY_5_200",
+        [Option("profilename-focusscan-recept", Required = false, Default = "准直Recept_XY_5_200",
             HelpText = "焦距扫描Receptacle端扫描使用的配置文件")]
-        public string ProfileNameFocusScanColliRecept { get; set; }
+        public string ProfileNameFocusScanRecept { get; set; }
 
-        [Option('q', "profilename-dual-lscan-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
+        [Option("profilename-linescan-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
             HelpText = "慢速扫描Lens端扫描使用的配置文件")]
         public string ProfileNameLineScanLens { get; set; }
 
-        [Option('r', "profilename-dual-lscan-colli-recept", Required = false, Default = "准直Recept_XY_5_200",
+        [Option("profilename-dual-linescan-recept", Required = false, Default = "准直Recept_XY_5_200",
             HelpText = "双边慢速扫描Receptacle端扫描使用的配置文件")]
-        public string ProfileNameDualLineScanColliRecept { get; set; }
+        public string ProfileNameDualLineScanRecept { get; set; }
 
-        [Option('s', "profilename-dual-lscan-colli-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
+        [Option("profilename-dual-linescan-lens", Required = false, Default = "LD_Lens_XY_0.2_10_Z_0.5_10",
             HelpText = "双边慢速扫描Lens端扫描使用的配置文件")]
-        public string ProfileNameDualLineScanColliLens { get; set; }
+        public string ProfileNameDualLineScanLens { get; set; }
 
-        [Option('t', "profilename-hillclimb", Required = false, Default = "LD_Lens_FineTune",
+        [Option("profilename-hillclimb", Required = false, Default = "LD_Lens_FineTune",
             HelpText = "爬山扫描使用的配置文件")]
         public string ProfileNameHillClimb { get; set; }
 

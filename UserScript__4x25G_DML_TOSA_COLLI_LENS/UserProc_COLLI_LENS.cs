@@ -32,15 +32,15 @@ namespace UserScript
 
                 // 初始化功率计状态
                 Apas.__SSC_LogInfo("初始化光功率计...");
-                Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_Powermeter_SetUnit(PM_COLLI, SSC_PMUnitEnum.dBm);
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
+                Apas.__SSC_Powermeter_SetUnit(opts.PowerMeterCaption, SSC_PMUnitEnum.dBm);
 
                 // 等待功率计稳定
                 Thread.Sleep(500);
 
 
                 // 读取初始功率
-                var power = Apas.__SSC_Powermeter_Read(PM_COLLI);
+                var power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 Apas.__SSC_LogInfo($"初始光 {power:F2}dBm");
 
 
@@ -97,10 +97,10 @@ namespace UserScript
 
 
                 // 检查光功率是否达标
-                Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
                 Thread.Sleep(500);
 
-                power = Apas.__SSC_Powermeter_Read(PM_COLLI);
+                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 Apas.__SSC_LogInfo($"最终光功率为 {power:F2}dBm");
 
                 if (TARGET_POWER_MIN_DBM <= power)
@@ -128,16 +128,6 @@ namespace UserScript
         #region Variables
 
         /// <summary>
-        ///     会聚光Lens耦合使用的功率计
-        /// </summary>
-        private const string PM_FOCUS = "PM1906A1";
-
-        /// <summary>
-        ///     准直Lens耦合使用的功率计
-        /// </summary>
-        private const string PM_COLLI = "PM1906A2";
-
-        /// <summary>
         ///     耦合后最小光功率
         /// </summary>
         private const double TARGET_POWER_MIN_DBM = 0;
@@ -159,7 +149,7 @@ namespace UserScript
         {
             var cycle = 0;
 
-            var powerPrev = Service.__SSC_Powermeter_Read(PM_COLLI);
+            var powerPrev = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
 
             __redo_rectscan:
             Service.__SSC_LogInfo($"开始面扫描搜索初始光...cycle({cycle})");
@@ -167,13 +157,14 @@ namespace UserScript
 
             PerformAlignment(Service,
                 new Func<string, object>[] {Service.__SSC_DoRectAreaScan},
-                new[] {"LD_Lens_初始光"},
+                opts,
+                new[] {opts.ProfileNameBlindSearch},
                 SSC_PMRangeEnum.RANGE1, double.NaN, 2);
 
             Thread.Sleep(500);
 
             // Service.__SSC_Powermeter_SetRange(PM_CAPTION, SSC_PMRangeEnum.AUTO);
-            var power = Service.__SSC_Powermeter_Read(PM_COLLI);
+            var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
             Service.__SSC_LogInfo($"最大功率：{power:F2}dBm");
 
             // The exit condition is power > -15dBm
@@ -219,7 +210,7 @@ namespace UserScript
 
             var range = SSC_PMRangeEnum.RANGE3;
             var originZPos = Service.__SSC_GetAbsPosition(LMC_LENS, LMC_LENS_AXIS_Z);
-            var power = Service.__SSC_Powermeter_Read(PM_COLLI);
+            var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
 
             while (true)
             {
@@ -232,10 +223,11 @@ namespace UserScript
                     // XY Scan
                     PerformAlignment(Service,
                         new Func<string, object>[] {Service.__SSC_DoFastND, Service.__SSC_DoFastND},
-                        new[] {opts.ProfileNameFocusScanColliLens, opts.ProfileNameFocusScanColliRecept},
+                        opts,
+                        new[] {opts.ProfileNameFocusScanLens, opts.ProfileNameFocusScanRecept},
                         range, 0.2, power, 10);
 
-                    power = Service.__SSC_Powermeter_Read(PM_COLLI);
+                    power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                     Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
 
                     if (power > opts.PowerThreFocusScan)
@@ -310,7 +302,7 @@ namespace UserScript
             var powerHistory = new Queue<double>();
             var cycle = 0;
 
-            Service.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
+            Service.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
 
             Thread.Sleep(500);
 
@@ -320,14 +312,14 @@ namespace UserScript
             {
                 // PowerMeterAutoRange(Service, PM_CAPTION);
 
-                var power = Service.__SSC_Powermeter_Read(PM_COLLI);
+                var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 var lastPower = power;
 
                 Service.__SSC_DoProfileND(opts.ProfileNameLineScanLens);
 
                 Thread.Sleep(200);
 
-                power = Service.__SSC_Powermeter_Read(PM_COLLI);
+                power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
 
                 //powerHistory.Enqueue(power);
@@ -369,20 +361,20 @@ namespace UserScript
 
             Apas.__SSC_LogInfo("开始Rept和准直Lens双边调整...");
 
-            Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-            powerLast = Apas.__SSC_Powermeter_Read(PM_COLLI);
+            Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
+            powerLast = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
 
             while (true)
             {
-                Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.RANGE4);
-                Apas.__SSC_DoFastND(opts.ProfileNameDualLineScanColliRecept);
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.RANGE4);
+                Apas.__SSC_DoFastND(opts.ProfileNameDualLineScanRecept);
 
-                Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanColliLens);
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
+                Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanLens);
 
                 Thread.Sleep(200);
 
-                power = Apas.__SSC_Powermeter_Read(PM_COLLI);
+                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 var powerDiff = power - powerLast;
 
                 Apas.__SSC_LogInfo($"Power Diff: {powerDiff:F2}dB, {power:F2}dBm, {powerLast:F2}dBm");
@@ -408,7 +400,7 @@ namespace UserScript
 
             try
             {
-                Apas.__SSC_Powermeter_SetRange(PM_COLLI, SSC_PMRangeEnum.AUTO);
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
                 Apas.__SSC_DoHillClimb(opts.ProfileNameHillClimb);
             }
             catch (Exception)
@@ -418,19 +410,19 @@ namespace UserScript
 
 
         private static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers,
-            string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm,
+            Options opts, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm,
             double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 20)
         {
             if (AlignmentHandlers.Length != Profiles.Length)
                 throw new Exception("Handler和Profile的数量不一致。");
 
             var cycle = 0;
-            var currPower = Service.__SSC_Powermeter_Read(PM_COLLI);
+            var currPower = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
             var lastPower = currPower;
 
             while (true)
             {
-                Service.__SSC_Powermeter_SetRange(PM_COLLI, PMRange);
+                Service.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, PMRange);
 
                 Thread.Sleep(200);
 
@@ -439,7 +431,7 @@ namespace UserScript
                 Thread.Sleep(200);
 
                 // 计算耦合后和耦合前的功率差值
-                currPower = Service.__SSC_Powermeter_Read(PM_COLLI);
+                currPower = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 var diffPower = currPower - lastPower;
                 lastPower = currPower;
 
