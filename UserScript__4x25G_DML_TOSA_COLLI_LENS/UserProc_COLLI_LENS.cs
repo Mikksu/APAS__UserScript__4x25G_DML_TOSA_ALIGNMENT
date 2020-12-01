@@ -47,50 +47,85 @@ namespace UserScript
                 // STEP 1: RECT Area Scan
                 if (power < -25)
                 {
-                    sw.Restart();
+                    if (opts.EnableBlindSearch)
+                    {
+                        sw.Restart();
 
-                    Step1(Apas, opts);
+                        Step1(Apas, opts);
 
-                    sw.Stop();
-                    Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                        sw.Stop();
+                        Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                    }
+                    else
+                    {
+                        Apas.__SSC_LogWarn("忽略BlindSearch！");
+                    }
                 }
 
 
                 // Step 2: Fast Focus Scan
                 if (power < 0)
                 {
+                    if (opts.EnableFastFocusScan)
+                    {
+                        sw.Restart();
+
+                        Step2(Apas, opts);
+
+                        sw.Stop();
+                        Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                    }
+                    else
+                    {
+                        Apas.__SSC_LogWarn("忽略快速焦距扫描！");
+                    }
+                }
+
+                // STEP 3: Profile ND to fine-tune.
+                if (opts.EnableLensProfileScan)
+                {
                     sw.Restart();
 
-                    Step2(Apas, opts);
+                    Step3(Apas, opts);
 
                     sw.Stop();
                     Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
                 }
-
-                // STEP 3: Profile ND to fine-tune.
-                sw.Restart();
-
-                Step3(Apas, opts);
-
-                sw.Stop();
-                Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                else
+                {
+                    Apas.__SSC_LogWarn("忽略Lens线性Profile扫描！");
+                }
 
                 // STEP 4: 双边耦合
-                sw.Restart();
+                if (opts.EnableReceptLensDualScan)
+                {
+                    sw.Restart();
 
-                Step4(Apas, opts);
+                    Step4(Apas, opts);
 
-                sw.Stop();
-                Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                    sw.Stop();
+                    Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                }
+                else
+                {
+                    Apas.__SSC_LogWarn("忽略Receptacle-Lens双边扫描！");
+                }
 
 
                 // STEP 5: Hill Climb
-                sw.Restart();
+                if (opts.EnableFinalFineTune)
+                {
+                    sw.Restart();
 
-                Step5(Apas, opts);
+                    Step5(Apas, opts);
 
-                sw.Stop();
-                Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                    sw.Stop();
+                    Apas.__SSC_LogInfo($"耗时: {sw.Elapsed.TotalSeconds:F1}s");
+                }
+                else
+                {
+                    Apas.__SSC_LogWarn("忽略最终微调！");
+                }
 
                 swTotal.Stop();
                 Apas.__SSC_LogInfo($"总耗时: {swTotal.Elapsed.TotalSeconds:F1}s");
@@ -145,6 +180,11 @@ namespace UserScript
 
         #region Private Methods
 
+        /// <summary>
+        /// 执行忙扫。
+        /// </summary>
+        /// <param name="Service"></param>
+        /// <param name="opts"></param>
         private static void Step1(SystemServiceClient Service, Options opts)
         {
             var cycle = 0;
@@ -297,6 +337,11 @@ namespace UserScript
             }
         }
 
+        /// <summary>
+        /// Lens慢速线性扫描
+        /// </summary>
+        /// <param name="Service"></param>
+        /// <param name="opts"></param>
         private static void Step3(SystemServiceClient Service, Options opts)
         {
             var powerHistory = new Queue<double>();
@@ -351,7 +396,7 @@ namespace UserScript
         }
 
         /// <summary>
-        ///     Rept和准直Lens同时调整。
+        /// Receptacle和准直Lens同时调整。
         /// </summary>
         /// <param name="Apas"></param>
         private static void Step4(SystemServiceClient Apas, Options opts)
@@ -394,6 +439,11 @@ namespace UserScript
             }
         }
 
+        /// <summary>
+        /// 执行爬山算法微调
+        /// </summary>
+        /// <param name="Apas"></param>
+        /// <param name="opts"></param>
         private static void Step5(SystemServiceClient Apas, Options opts)
         {
             Apas.__SSC_LogInfo("开始执行爬山扫描...");
