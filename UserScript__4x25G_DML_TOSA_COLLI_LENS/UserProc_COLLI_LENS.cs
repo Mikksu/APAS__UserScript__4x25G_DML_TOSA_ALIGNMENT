@@ -47,7 +47,7 @@ namespace UserScript
                 // STEP 1: RECT Area Scan
                 if (power < -25)
                 {
-                    if (opts.EnableBlindSearch)
+                    if (opts.IgnoreBlindSearch == false)
                     {
                         sw.Restart();
 
@@ -66,7 +66,7 @@ namespace UserScript
                 // Step 2: Fast Focus Scan
                 if (power < 0)
                 {
-                    if (opts.EnableFastFocusScan)
+                    if (opts.IgnoreFastFocusScan == false)
                     {
                         sw.Restart();
 
@@ -82,7 +82,7 @@ namespace UserScript
                 }
 
                 // STEP 3: Profile ND to fine-tune.
-                if (opts.EnableLensProfileScan)
+                if (opts.IgnoreLensProfileScan == false)
                 {
                     sw.Restart();
 
@@ -97,7 +97,7 @@ namespace UserScript
                 }
 
                 // STEP 4: 双边耦合
-                if (opts.EnableReceptLensDualScan)
+                if (opts.IgnoreReceptLensDualScan == false)
                 {
                     sw.Restart();
 
@@ -113,7 +113,7 @@ namespace UserScript
 
 
                 // STEP 5: Hill Climb
-                if (opts.EnableFinalFineTune)
+                if (opts.IgnoreFinalFineTune == false)
                 {
                     sw.Restart();
 
@@ -411,8 +411,16 @@ namespace UserScript
 
             while (true)
             {
-                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.RANGE4);
-                Apas.__SSC_DoFastND(opts.ProfileNameDualLineScanRecept);
+                if (opts.UseProfileNdInReceptLensDualScan == false)
+                {
+                    Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.RANGE4);
+                    Apas.__SSC_DoFastND(opts.ProfileNameDualLineScanRecept);
+                }
+                else
+                {
+                    Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
+                    Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanRecept);
+                }
 
                 Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
                 Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanLens);

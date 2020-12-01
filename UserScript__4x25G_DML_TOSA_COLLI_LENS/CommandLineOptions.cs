@@ -7,25 +7,29 @@ namespace UserScript
 
         #region Coupling Behaviour Control
 
-        [Option("enable-blindsearch", Required = false, Default = true,
-           HelpText = "是否执行盲扫")]
-        public bool EnableBlindSearch { get; set; }
+        [Option("ignore-blindsearch", Required = false,
+           HelpText = "是否忽略盲扫")]
+        public bool IgnoreBlindSearch { get; set; }
 
-        [Option("enable-fast-fouse-scan", Required = false, Default = true,
-          HelpText = "是否执行快速焦距扫描")]
-        public bool EnableFastFocusScan { get; set; }
+        [Option("ignore-fast-fouse-scan", Required = false,
+          HelpText = "是否忽略快速焦距扫描")]
+        public bool IgnoreFastFocusScan { get; set; }
 
-        [Option("enable-lens-profile-scan", Required = false, Default = true,
-          HelpText = "是否执行Lens慢速扫描")]
-        public bool EnableLensProfileScan { get; set; }
+        [Option("ignore-lens-profile-scan", Required = false,
+          HelpText = "是否忽略Lens慢速扫描")]
+        public bool IgnoreLensProfileScan { get; set; }
 
-        [Option("enable-dual-profile-scan", Required = false, Default = true,
-          HelpText = "是否执行Receptacle和Lens双边慢速扫描")]
-        public bool EnableReceptLensDualScan { get; set; }
+        [Option("ignore-dual-scan", Required = false,
+          HelpText = "是否忽略Receptacle和Lens双边慢速扫描")]
+        public bool IgnoreReceptLensDualScan { get; set; }
 
-        [Option("enable-final-finetune", Required = false, Default = true,
-          HelpText = "是否执行爬山算法进行最终微调")]
-        public bool EnableFinalFineTune { get; set; }
+        [Option("ignore-final-finetune", Required = false,
+          HelpText = "是否忽略爬山算法进行最终微调")]
+        public bool IgnoreFinalFineTune { get; set; }
+
+        [Option("user-profile-nd-in-dual-scan-for-recept", Required = false,
+          HelpText = "是否使用Profile ND算法进行Receptacle-Lens双面扫描。默认使用Fast ND算法扫描Receptacle端")]
+        public bool UseProfileNdInReceptLensDualScan { get; set; }
 
         #endregion
 
