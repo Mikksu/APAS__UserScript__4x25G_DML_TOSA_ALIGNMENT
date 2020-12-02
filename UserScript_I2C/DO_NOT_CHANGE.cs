@@ -1,8 +1,10 @@
+using CommandLine;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.ServiceModel;
 using System.Text;
-using CommandLine;
 using UserScript.SystemService;
 
 namespace UserScript
@@ -20,14 +22,17 @@ namespace UserScript
     {
         private static void Main(string[] args)
         {
-            var client = new SystemServiceClient();
-            var helpText = new StringBuilder();
+            var isExceptionThrown = false;
+            var errText = "";
+            var wcfClient = new SystemServiceClient();
 
             try
             {
-                client.Open();
+                wcfClient.Open();
+                wcfClient.__SSC_Connect();
 
-                client.__SSC_Connect();
+                // print the script version
+                wcfClient.__SSC_LogInfo($"Script Version: v{Assembly.GetExecutingAssembly().GetName()}");
 
                 var helpWriter = new StringWriter();
                 var parser = new Parser(with =>
@@ -41,49 +46,89 @@ namespace UserScript
                     .MapResult(
                         (TurnOnOptions opts) =>
                         {
-                            TurnOn(client, opts.Channel, opts.IBias);
+                            TurnOn(wcfClient, opts.Channel, opts.IBias);
                             return 0;
                         },
                         (TurnOffOptions opts) =>
                         {
-                            TurnOff(client, opts.Channel);
+                            TurnOff(wcfClient, opts.Channel);
                             return 0;
                         },
                         errs =>
                         {
                             var myErr = "";
-                            if(errs.IsHelp() || errs.IsVersion())
-                                myErr =  helpWriter.ToString();
+                            if (errs.IsHelp() || errs.IsVersion())
+                                myErr = helpWriter.ToString();
                             else
                             {
                                 myErr = $"启动参数错误。\r\n{helpWriter}";
                             }
 
-                            client.__SSC_LogError(myErr);
-
                             throw new Exception(myErr);
                         });
 
-                client.__SSC_Disconnect();
+                wcfClient.__SSC_Disconnect();
             }
             catch (AggregateException ae)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.BackgroundColor = ConsoleColor.Red;
-
                 var ex = ae.Flatten();
-
-                ex.InnerExceptions.ToList().ForEach(e => { Console.WriteLine($"Error occurred, {e.Message}"); });
-
-                Console.ResetColor();
+                ex.InnerExceptions.ToList().ForEach(e =>
+                {
+                    errText = ex.Message;
+                    Console.Error.WriteLine(errText);
+                });
+                isExceptionThrown = true;
+            }
+            catch (TimeoutException timeProblem)
+            {
+                errText = "The service operation timed out. " + timeProblem.Message;
+                Console.Error.WriteLine(errText);
+            }
+            // Catch unrecognized faults. This handler receives exceptions thrown by WCF
+            // services when ServiceDebugBehavior.IncludeExceptionDetailInFaults
+            // is set to true.
+            catch (FaultException faultEx)
+            {
+                errText = "An unknown exception was received. "
+                          + faultEx.Message
+                          + faultEx.StackTrace;
+                Console.Error.WriteLine(errText);
+            }
+            // Standard communication fault handler.
+            catch (CommunicationException commProblem)
+            {
+                errText = "There was a communication problem. " + commProblem.Message + commProblem.StackTrace;
+                Console.Error.WriteLine(errText);
+            }
+            catch (Exception ex)
+            {
+                errText = ex.Message;
+                Console.Error.WriteLine(errText);
+                isExceptionThrown = true;
             }
             finally
             {
-                client.Close();
-            }
-            //Console.WriteLine("Press any key to exit.");
+                wcfClient.Abort();
+                if (isExceptionThrown)
+                {
+                    // try to output the error message to the log.
+                    try
+                    {
+                        using (wcfClient = new SystemServiceClient())
+                        {
+                            wcfClient.__SSC_LogError(errText);
+                            wcfClient.Abort();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignore
+                    }
 
-            //Console.ReadKey();
+
+                    Environment.ExitCode = -1;
+                }
+            }
         }
     }
 }

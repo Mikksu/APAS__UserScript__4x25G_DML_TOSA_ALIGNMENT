@@ -47,7 +47,6 @@ namespace UserScript
                 else
                 {
                     var err = "ICC1或ICC3未达到指定值。";
-                    Apas.__SSC_LogError(err);
                     throw new Exception(err);
                 }
             }

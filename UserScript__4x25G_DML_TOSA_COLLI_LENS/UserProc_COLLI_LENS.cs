@@ -151,8 +151,8 @@ namespace UserScript
             }
             catch (Exception ex)
             {
-                Apas.__SSC_LogError(ex.Message);
-                throw ex;
+                //Apas.__SSC_LogError(ex.Message);
+                throw new Exception(ex.Message);
             }
 
             // Thread.Sleep(100);

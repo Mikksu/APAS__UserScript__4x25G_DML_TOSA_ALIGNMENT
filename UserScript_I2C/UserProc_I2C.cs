@@ -25,14 +25,12 @@ namespace UserScript
             if (channel < 1 || channel > 4)
             {
                 err = "通道参数错误，通道值必须为1 - 4。";
-                apas.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
             if (iBias < 0 || iBias > 150)
             {
                 err = "IBias参数错误，IBias必须为0mA - 150mA。";
-                apas.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
@@ -52,7 +50,6 @@ namespace UserScript
 
             // throw exception if ICC2 is too small.
             err = "ICC2电流过小。";
-            apas.__SSC_LogError(err);
             throw new Exception(err);
         }
 
@@ -61,7 +58,6 @@ namespace UserScript
             if (channel < 0 || channel > 4)
             {
                 var err = "通道参数错误，通道值必须为0 - 4。";
-                apas.__SSC_LogError(err);
                 throw new Exception(err);
             }
 
