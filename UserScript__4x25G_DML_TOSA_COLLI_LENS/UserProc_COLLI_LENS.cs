@@ -210,7 +210,7 @@ namespace UserScript
             // The exit condition is power > -15dBm
             if (power < opts.PowerThreRectAreaScan)
             {
-                if (power - powerPrev > 10)
+                if (power - powerPrev > 5)
                 {
                     cycle--;
                     powerPrev = power;
@@ -298,21 +298,21 @@ namespace UserScript
 
                 #endregion
 
-                var lastPower = powerXYHistory.Last();
+                power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
                 var currZPos = Service.__SSC_GetAbsPosition(LMC_LENS, LMC_LENS_AXIS_Z);
-                Service.__SSC_LogInfo($"XY平面功率: {currZPos - originZPos:F4}um, {lastPower:F2}dBm");
+                Service.__SSC_LogInfo($"XY平面功率: {currZPos - originZPos:F4}um, {power:F2}dBm");
 
-                if (lastPower > 0) // exit if the power > 0dBm
+                if (power > 0) // exit if the power > 0dBm
                     break;
 
-                powerZHistory.Add(new PointF((float) currZPos, (float) lastPower));
+                powerZHistory.Add(new PointF((float) currZPos, (float)power));
 
                 if (powerZHistory.Count >= 2)
                 {
-                    lastPower = powerZHistory[powerZHistory.Count - 1].Y;
+                    power = powerZHistory[powerZHistory.Count - 1].Y;
                     var lastlastPower = powerZHistory[powerZHistory.Count - 2].Y;
-                    var diff = lastPower - lastlastPower;
-                    Service.__SSC_LogInfo($"功率差: {diff:F2}dBm/{lastPower:F2}dBm/{lastlastPower:F2}dBm");
+                    var diff = power - lastlastPower;
+                    Service.__SSC_LogInfo($"功率差: {diff:F2}dBm/{power:F2}dBm/{lastlastPower:F2}dBm");
                     if (diff < -1)
                     {
                         Service.__SSC_LogInfo("功率降低，开始反向搜索...");

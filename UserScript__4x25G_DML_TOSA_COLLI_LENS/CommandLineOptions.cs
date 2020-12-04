@@ -55,11 +55,11 @@ namespace UserScript
             HelpText = "快速焦距扫描的最小步进，当扫描步进收敛到此值时终止扫描")]
         public double FocusScanFinalStep { get; set; }
 
-        [Option("pth-lscan-n", Required = false, Default = -0.1,
+        [Option("pth-lscan-n", Required = false, Default = -0.2,
             HelpText = "慢速扫描退出的阈值功率最小值，如果最后两次扫描功率之差大于此值时退出耦合，单位dBm")]
         public double PowerThreLineScanN { get; set; }
 
-        [Option("pth-lscan-p", Required = false, Default = 0.2,
+        [Option("pth-lscan-p", Required = false, Default = 0.5,
             HelpText = "慢速扫描退出的阈值功率最大值，如果最后两次扫描功率之差小于此值时退出耦合，单位dBm")]
         public double PowerThreLineScanP { get; set; }
 
