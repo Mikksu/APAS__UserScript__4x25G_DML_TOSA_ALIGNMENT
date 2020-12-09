@@ -67,7 +67,7 @@ namespace UserScript
             HelpText = "双边慢速扫描退出的阈值功率最小值，如果最后两次扫描功率之差大于此值时退出耦合，单位dBm")]
         public double PowerThreDualLineScanN { get; set; }
 
-        [Option("pth-dual-lscan-p", Required = false, Default = 0.2,
+        [Option("pth-dual-lscan-p", Required = false, Default = 0.3,
             HelpText = "双边慢速扫描退出的阈值功率最大值，如果最后两次扫描功率之差小于此值时退出耦合，单位dBm")]
         public double PowerThreDualLineScanP { get; set; }
 
