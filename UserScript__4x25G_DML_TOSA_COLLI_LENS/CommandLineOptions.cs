@@ -47,7 +47,7 @@ namespace UserScript
             HelpText = "快速焦距扫描的步进")]
         public double FocusScanStep { get; set; }
 
-        [Option( "fscan-range", Required = false, Default = 50,
+        [Option( "fscan-range", Required = false, Default = 100,
             HelpText = "快速焦距扫描的最大移动范围")]
         public double FocusScanRange { get; set; }
 

@@ -333,7 +333,10 @@ namespace UserScript
                 // be sure it never move out of the RANGE.
                 zMoved += nextZMoveStep;
                 if (zMoved > opts.FocusScanRange)
+                {
+                    Service.__SSC_LogWarn("焦点扫描Z轴范围达到最大值。");
                     break;
+                }
             }
         }
 
