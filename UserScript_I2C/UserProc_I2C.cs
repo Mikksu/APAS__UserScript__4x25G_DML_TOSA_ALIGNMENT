@@ -46,10 +46,10 @@ namespace UserScript
 
             // 检测电流
             var icc2 = apas.__SSC_MeasurableDevice_Read("RIGOL DP800s,CH2电流");
-            if (!(icc2 < 0.035)) return;
+            if (icc2 > 0.035 && icc2 < 0.15) return;
 
             // throw exception if ICC2 is too small.
-            err = "ICC2电流过小。";
+            err = "ICC2电流异常。";
             throw new Exception(err);
         }
 
