@@ -41,7 +41,7 @@ namespace UserScript
                 var ICC1 = Apas.__SSC_MeasurableDevice_Read(DP800_READ_CURR_CH1);
                 var ICC3 = Apas.__SSC_MeasurableDevice_Read(DP800_READ_CURR_CH3);
 
-                if (ICC1 >= 0.05 && ICC3 >= 0.008)
+                if (ICC1 >= 0.04 && ICC3 >= 0.008)
                 {
                 }
                 else
