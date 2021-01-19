@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "4x25G_DML_TOSA__IBias_Contr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlignmentCommonLib", "AlignmentCommonLib\AlignmentCommonLib.csproj", "{C92106F1-878D-45AB-B08B-3F8478A0C2E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserScript_Calculate_Colli_Recpt_Angle", "UserScript_Calculate_Colli_Recpt_Angle\UserScript_Calculate_Colli_Recpt_Angle.csproj", "{3B2BC2B0-8BF3-4D9C-BA3D-333AF6CA98C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C92106F1-878D-45AB-B08B-3F8478A0C2E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B2BC2B0-8BF3-4D9C-BA3D-333AF6CA98C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B2BC2B0-8BF3-4D9C-BA3D-333AF6CA98C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B2BC2B0-8BF3-4D9C-BA3D-333AF6CA98C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B2BC2B0-8BF3-4D9C-BA3D-333AF6CA98C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
