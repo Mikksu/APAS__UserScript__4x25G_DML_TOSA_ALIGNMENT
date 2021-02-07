@@ -26,6 +26,8 @@ namespace UserScript
         {
             try
             {
+                Apas.__SSC_LogInfo($"目标功率：{opts.PowerThreTerminate:F2}dBm");
+
                 var sw = new Stopwatch();
                 var swTotal = new Stopwatch();
                 swTotal.Start();
@@ -58,7 +60,7 @@ namespace UserScript
                     }
                     else
                     {
-                        Apas.__SSC_LogWarn("忽略BlindSearch！");
+                        Apas.__SSC_LogWarn($"忽略BlindSearch，当前功率：{power:F2}dBm");
                     }
                 }
 
@@ -77,13 +79,19 @@ namespace UserScript
                     }
                     else
                     {
-                        Apas.__SSC_LogWarn("忽略快速焦距扫描！");
+                        Apas.__SSC_LogWarn($"忽略快速焦距扫描，，当前功率：{power:F2}dBm");
                     }
                 }
 
                 // STEP 3: Profile ND to fine-tune.
-                if (opts.IgnoreLensProfileScan == false)
+
+                // 等待功率计稳定
+                Thread.Sleep(500);
+                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+                if (opts.IgnoreLensProfileScan == false && power < opts.PowerThreTerminate)
                 {
+                    
+
                     sw.Restart();
 
                     Step3(Apas, opts);
@@ -93,11 +101,14 @@ namespace UserScript
                 }
                 else
                 {
-                    Apas.__SSC_LogWarn("忽略Lens线性Profile扫描！");
+                    Apas.__SSC_LogWarn($"忽略Lens线性Profile扫描，，当前功率：{power:F2}dBm");
                 }
 
                 // STEP 4: 双边耦合
-                if (opts.IgnoreReceptLensDualScan == false)
+                // 等待功率计稳定
+                Thread.Sleep(500);
+                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+                if (opts.IgnoreReceptLensDualScan == false && power < opts.PowerThreTerminate)
                 {
                     sw.Restart();
 
@@ -108,12 +119,15 @@ namespace UserScript
                 }
                 else
                 {
-                    Apas.__SSC_LogWarn("忽略Receptacle-Lens双边扫描！");
+                    Apas.__SSC_LogWarn($"忽略Receptacle-Lens双边扫描，，当前功率：{power:F2}dBm");
                 }
 
 
-                // STEP 5: Hill Climb
-                if (opts.IgnoreFinalFineTune == false)
+                // STEP 5: 最终位置优化
+                // 等待功率计稳定
+                Thread.Sleep(500);
+                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+                if (opts.IgnoreFinalFineTune == false && power < opts.PowerThreTerminate)
                 {
                     sw.Restart();
 
@@ -124,7 +138,7 @@ namespace UserScript
                 }
                 else
                 {
-                    Apas.__SSC_LogWarn("忽略最终微调！");
+                    Apas.__SSC_LogWarn($"忽略最终微调，，当前功率：{power:F2}dBm");
                 }
 
                 swTotal.Stop();
@@ -347,7 +361,6 @@ namespace UserScript
         /// <param name="opts"></param>
         private static void Step3(SystemServiceClient Service, Options opts)
         {
-            var powerHistory = new Queue<double>();
             var cycle = 0;
 
             Service.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
@@ -360,36 +373,24 @@ namespace UserScript
             {
                 // PowerMeterAutoRange(Service, PM_CAPTION);
 
-                var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
-                var lastPower = power;
+                var pBeforeAlign = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
 
-                Service.__SSC_DoProfileND(opts.ProfileNameLineScanLens);
+                if(opts.UseHillClimbInLensAlign)
+                    Service.__SSC_DoHillClimb(opts.ProfileNameLineScanLens);
+                else
+                    Service.__SSC_DoProfileND(opts.ProfileNameLineScanLens);
 
-                Thread.Sleep(200);
+                Thread.Sleep(500);
 
-                power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
-                Service.__SSC_LogInfo($"光功率：{power:F2}dBm");
+                var pAfterAlign = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+                Service.__SSC_LogInfo($"光功率：{pAfterAlign:F2}dBm");
 
-                //powerHistory.Enqueue(power);
-                //if (powerHistory.Count > 5)
-                //    powerHistory.Dequeue();
+                var powerDiff = pAfterAlign - pBeforeAlign;
+                Service.__SSC_LogInfo($"Power Diff: {powerDiff:F2}dB, {pAfterAlign:F2}dBm/{pBeforeAlign:F2}dBm");
 
-                //if (powerHistory.Count > 2)
-                //{
-                //    DataAnalysis.CheckSlope(powerHistory.ToArray(), out DataAnalysis.SlopeTrendEnum trend);
-                //    Service.__SSC_LogInfo($"功率变化趋势：{trend.ToString()}");
-
-                //    if (trend == DataAnalysis.SlopeTrendEnum.Ripple)
-                //    {
-                //        break;
-                //    }
-                //}
-
-                var powerDiff = power - lastPower;
-                Service.__SSC_LogInfo($"Power Diff: {powerDiff:F2}dB, {power:F2}dBm/{lastPower:F2}dBm");
-                lastPower = power;
                 //if (power > 0 && (powerDiff > -0.2 && powerDiff < 0.2))
                 if (powerDiff > opts.PowerThreLineScanN && powerDiff < opts.PowerThreLineScanP) break;
+                if (pAfterAlign >= opts.PowerThreTerminate) break;
 
                 cycle++;
 
@@ -405,15 +406,17 @@ namespace UserScript
         private static void Step4(SystemServiceClient Apas, Options opts)
         {
             var cycle = 0;
-            double power, powerLast;
 
             Apas.__SSC_LogInfo("开始Rept和准直Lens双边调整...");
 
             Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
-            powerLast = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
-
+            
             while (true)
             {
+                var pBeforeAlign = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+
+                #region 调整Receptacle
+
                 if (opts.UseProfileNdInReceptLensDualScan == false)
                 {
                     Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.RANGE4);
@@ -425,19 +428,29 @@ namespace UserScript
                     Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanRecept);
                 }
 
-                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanLens);
+                #endregion
 
                 Thread.Sleep(200);
 
-                power = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
-                var powerDiff = power - powerLast;
+                #region 调整Lens
 
-                Apas.__SSC_LogInfo($"Power Diff: {powerDiff:F2}dB, {power:F2}dBm, {powerLast:F2}dBm");
+                Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
+                if (opts.UseHillClimbInLensAlign)
+                    Apas.__SSC_DoHillClimb(opts.ProfileNameDualLineScanLens);
+                else
+                    Apas.__SSC_DoProfileND(opts.ProfileNameDualLineScanLens);
+                #endregion
 
-                powerLast = power;
+                Thread.Sleep(500);
+
+                var pAfterAlign = Apas.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+                var pDiff = pAfterAlign - pBeforeAlign;
+
+                Apas.__SSC_LogInfo($"Power Diff: {pDiff:F2}dB, {pAfterAlign:F2}dBm, {pBeforeAlign:F2}dBm");
+
                 //if (power > 3.5 && (powerDiff > -0.2 && powerDiff < 0.2))
-                if (powerDiff > opts.PowerThreDualLineScanN && powerDiff < opts.PowerThreDualLineScanP) break;
+                if (pDiff > opts.PowerThreDualLineScanN && pDiff < opts.PowerThreDualLineScanP) break;
+                if (pAfterAlign >= opts.PowerThreTerminate) break;
 
                 cycle++;
 
@@ -457,12 +470,15 @@ namespace UserScript
         /// <param name="opts"></param>
         private static void Step5(SystemServiceClient Apas, Options opts)
         {
-            Apas.__SSC_LogInfo("开始执行爬山扫描...");
+            Apas.__SSC_LogInfo("开始执行最终位置优化...");
 
             try
             {
                 Apas.__SSC_Powermeter_SetRange(opts.PowerMeterCaption, SSC_PMRangeEnum.AUTO);
-                Apas.__SSC_DoHillClimb(opts.ProfileNameHillClimb);
+                if(opts.UseHillClimbInFinalFineTune)
+                    Apas.__SSC_DoHillClimb(opts.ProfileNameFinalFineTune);
+                else
+                    Apas.__SSC_DoProfileND(opts.ProfileNameFinalFineTune);
             }
             catch (Exception)
             {

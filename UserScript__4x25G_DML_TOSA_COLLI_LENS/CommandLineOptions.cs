@@ -27,9 +27,17 @@ namespace UserScript
           HelpText = "是否忽略爬山算法进行最终微调")]
         public bool IgnoreFinalFineTune { get; set; }
 
-        [Option("user-profile-nd-in-dual-scan-for-recept", Required = false,
+        [Option("use-profile-nd-in-dual-scan-for-recept", Required = false,
           HelpText = "是否使用Profile ND算法进行Receptacle-Lens双面扫描。默认使用Fast ND算法扫描Receptacle端")]
         public bool UseProfileNdInReceptLensDualScan { get; set; }
+
+        [Option("use-hill-climb-in-lens-align", Required = false,
+         HelpText = "是否使用HillClimb对Lens耦合。")]
+        public bool UseHillClimbInLensAlign { get; set; }
+
+        [Option("use-hill-climb-in-final-fine-tune", Required = false,
+         HelpText = "是否使用HillClimb对Lens进行最终细调。")]
+        public bool UseHillClimbInFinalFineTune { get; set; }
 
         #endregion
 
@@ -71,6 +79,10 @@ namespace UserScript
             HelpText = "双边慢速扫描退出的阈值功率最大值，如果最后两次扫描功率之差小于此值时退出耦合，单位dBm")]
         public double PowerThreDualLineScanP { get; set; }
 
+        [Option("pth-terminate", Required = false, Default = 7,
+            HelpText = "耦合终止阈值功率，当超过此功率时结束耦合，单位dBm")]
+        public double PowerThreTerminate { get; set; }
+
         [Option("powermeter", Required = false, Default = "PM1906A2",
             HelpText = "读取功率使用的功率计名称")]
         public string PowerMeterCaption { get; set; }
@@ -103,9 +115,9 @@ namespace UserScript
             HelpText = "双边慢速扫描Lens端扫描使用的配置文件")]
         public string ProfileNameDualLineScanLens { get; set; }
 
-        [Option("profilename-hillclimb", Required = false, Default = "LD_Lens_FineTune",
-            HelpText = "爬山扫描使用的配置文件")]
-        public string ProfileNameHillClimb { get; set; }
+        [Option("profilename-final-fine-tune", Required = false, Default = "LD_Lens_FineTune",
+            HelpText = "最终细调时使用的配置文件")]
+        public string ProfileNameFinalFineTune { get; set; }
 
         #endregion
     }
