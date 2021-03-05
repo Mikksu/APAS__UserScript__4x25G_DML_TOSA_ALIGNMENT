@@ -209,20 +209,24 @@ namespace UserScript
             Service.__SSC_LogInfo($"开始面扫描搜索初始光...cycle({cycle})");
             cycle++;
 
-            PerformAlignment(Service,
-                new Func<string, object>[] {Service.__SSC_DoRectAreaScan},
-                opts,
-                new[] {opts.ProfileNameBlindSearch},
-                SSC_PMRangeEnum.RANGE1, double.NaN, 2);
+            //PerformAlignment(Service,
+            //    new Func<string, object>[] {Service.__SSC_DoRectAreaScan},
+            //    opts,
+            //    new[] {opts.ProfileNameBlindSearch},
+            //    SSC_PMRangeEnum.RANGE1, double.NaN, 2);
 
-            Thread.Sleep(500);
+            var ret = Service.__SSC_DoRectAreaScan(opts.ProfileNameBlindSearch);
+
+            Thread.Sleep(200);
 
             // Service.__SSC_Powermeter_SetRange(PM_CAPTION, SSC_PMRangeEnum.AUTO);
-            var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
-            Service.__SSC_LogInfo($"最大功率：{power:F2}dBm");
+            //var power = Service.__SSC_Powermeter_Read(opts.PowerMeterCaption);
+            var power = ret.PeakValue;
+            Service.__SSC_LogInfo($"最大功率：{power}mV");
 
             // The exit condition is power > -15dBm
-            if (power < opts.PowerThreRectAreaScan)
+            //if (power < opts.PowerThreRectAreaScan)
+            if (power < 3000)
             {
                 if (power - powerPrev > 5)
                 {
@@ -246,6 +250,24 @@ namespace UserScript
                 }
 
                 throw new Exception("无法找到初始功率， 请检查Lens位置。");
+            }
+            else
+            {
+                Service.__SSC_LogInfo("重新搜索峰值...");
+                var maxCycle = 0;
+                while (true)
+                {
+                    ret = Service.__SSC_DoRectAreaScan(opts.ProfileNameBlindSearchSmallStep);
+                    if (ret.PeakValue > 3000)
+                        break;
+                    else
+                    {
+                        if(maxCycle > 5)
+                            throw new Exception("无法找到初始功率， 请检查Lens位置。");
+                    }
+
+                    maxCycle++;
+                }
             }
         }
 
@@ -451,6 +473,7 @@ namespace UserScript
                 //if (power > 3.5 && (powerDiff > -0.2 && powerDiff < 0.2))
                 if (pDiff > opts.PowerThreDualLineScanN && pDiff < opts.PowerThreDualLineScanP) break;
                 if (pAfterAlign >= opts.PowerThreTerminate) break;
+                if (pDiff < -0.3) break; // 如果耦合功率开始变小超过-0.3dBm，则停止扫描
 
                 cycle++;
 
@@ -488,7 +511,7 @@ namespace UserScript
 
         private static void PerformAlignment(SystemServiceClient Service, Func<string, object>[] AlignmentHandlers,
             Options opts, string[] Profiles, SSC_PMRangeEnum PMRange, double BreakPowerDiff_dBm,
-            double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 20)
+            double BreakPowerMax_dBm = double.MaxValue, int MaxCycle = 5)
         {
             if (AlignmentHandlers.Length != Profiles.Length)
                 throw new Exception("Handler和Profile的数量不一致。");
@@ -503,7 +526,8 @@ namespace UserScript
 
                 Thread.Sleep(200);
 
-                for (var i = 0; i < AlignmentHandlers.Length; i++) AlignmentHandlers[i](Profiles[i]);
+                for (var i = 0; i < AlignmentHandlers.Length; i++)
+                    AlignmentHandlers[i](Profiles[i]);
 
                 Thread.Sleep(200);
 

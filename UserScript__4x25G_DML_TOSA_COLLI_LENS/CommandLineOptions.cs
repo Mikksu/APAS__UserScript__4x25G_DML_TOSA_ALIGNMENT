@@ -95,6 +95,10 @@ namespace UserScript
            HelpText = "Lens找初始光使用的配置文件")]
         public string ProfileNameBlindSearch { get; set; }
 
+        [Option("profilename--blindsearch-lens-s", Required = false, Default = "LD_Lens_初始光_s",
+           HelpText = "Lens小步进找初始光使用的配置文件")]
+        public string ProfileNameBlindSearchSmallStep { get; set; }
+
         [Option("profilename--focusscan-lens", Required = false, Default = "LD_Lens_XY_0.2_20_Z_1_20",
             HelpText = "焦距扫描Lens端扫描使用的配置文件")]
         public string ProfileNameFocusScanLens { get; set; }
