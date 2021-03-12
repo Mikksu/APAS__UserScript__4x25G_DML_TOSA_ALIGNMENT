@@ -10,8 +10,6 @@
 | __TC | Travel Card (Lot No.) |
 | __OP | Operator |
 | RECEPT_X_CH3 | Collimator X on CH3          |
-| RECEPT_X_CH3 | Collimator X on CH3          |
-| RECEPT_X_CH3 | Collimator X on CH3          |
 | RECEPT_Y_CH3    | Collimator Y on CH3          |
 | RECEPT_X_CH0    | Collimator X on CH0          |
 | RECEPT_Y_CH0    | Collimator Y on CH0          |

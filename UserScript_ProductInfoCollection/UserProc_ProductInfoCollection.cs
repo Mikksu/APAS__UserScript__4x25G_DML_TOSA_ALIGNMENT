@@ -39,6 +39,10 @@ namespace UserScript
             data.Traveler = ReadVariable<string>(apas.__SSC_ReadVariable, "__TC");
             data.WorkOrder = ReadVariable<string>(apas.__SSC_ReadVariable, "__WO");
             data.Operator = ReadVariable<string>(apas.__SSC_ReadVariable, "__OP");
+            data.CollimatorX_CH3 = ReadVariable<double>(apas.__SSC_ReadVariable, "RECEPT_X_CH3", double.Parse);
+            data.CollimatorY_CH3 = ReadVariable<double>(apas.__SSC_ReadVariable, "RECEPT_Y_CH3", double.Parse);
+            data.CollimatorX_CH0 = ReadVariable<double>(apas.__SSC_ReadVariable, "RECEPT_X_CH0", double.Parse);
+            data.CollimatorY_CH0 = ReadVariable<double>(apas.__SSC_ReadVariable, "RECEPT_Y_CH0", double.Parse);
             data.LDLensGap_CH3 = ReadVariable<double>(apas.__SSC_ReadVariable, "LD_LENS_GAP_CH3", double.Parse);
             data.LDLensGap_CH0 = ReadVariable<double>(apas.__SSC_ReadVariable, "LD_LENS_GAP_CH0", double.Parse);
             data.LDLensPowerAfterAlignment = ReadVariable<double>(apas.__SSC_ReadVariable, "MAX_POWER_CH0", double.Parse);
