@@ -93,6 +93,7 @@
     <Compile Include="UserProc_ProductInfoCollection.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="4x25G DML TOSA 耦合程序变量清单.md" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

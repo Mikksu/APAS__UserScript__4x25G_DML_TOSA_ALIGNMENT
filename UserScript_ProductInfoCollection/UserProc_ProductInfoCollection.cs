@@ -38,10 +38,17 @@ namespace UserScript
             data.Pn = ReadVariable<string>(apas.__SSC_ReadVariable, "__PN");
             data.Traveler = ReadVariable<string>(apas.__SSC_ReadVariable, "__TC");
             data.WorkOrder = ReadVariable<string>(apas.__SSC_ReadVariable, "__WO");
-            data.Op = ReadVariable<string>(apas.__SSC_ReadVariable, "__OP");
-            data.LDLensPowerBeforeUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_BEFORE_UV", double.Parse);
-            data.LDLensPowerAfterUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_AFTER_UV", double.Parse);
-            data.LDLensGap = ReadVariable<double>(apas.__SSC_ReadVariable, "LENS_GAP", double.Parse);
+            data.Operator = ReadVariable<string>(apas.__SSC_ReadVariable, "__OP");
+            data.LDLensGap_CH3 = ReadVariable<double>(apas.__SSC_ReadVariable, "LD_LENS_GAP_CH3", double.Parse);
+            data.LDLensGap_CH0 = ReadVariable<double>(apas.__SSC_ReadVariable, "LD_LENS_GAP_CH0", double.Parse);
+            data.LDLensPowerAfterAlignment = ReadVariable<double>(apas.__SSC_ReadVariable, "MAX_POWER_CH0", double.Parse);
+            data.LDLensPowerBeforeUVCuring = ReadVariable<double>(apas.__SSC_ReadVariable, "P_LD_LENS_BEFORE_UV", double.Parse);
+            data.LDLensPowerAfterUVCuring = ReadVariable<double>(apas.__SSC_ReadVariable, "P_LD_LENS_AFTER_UV", double.Parse);
+            data.FiberLensGap = ReadVariable<double>(apas.__SSC_ReadVariable, "FIBER_LENS_GAP", double.Parse);
+            data.FiberLensPowerAfterAlignment = ReadVariable<double>(apas.__SSC_ReadVariable, "P_FIB_LENS_POWER", double.Parse);
+            data.FiberLensPowerBeforeUV = ReadVariable<double>(apas.__SSC_ReadVariable, "P_FIB_LENS_BEFORE_UV", double.Parse);
+            data.FiberLensPowerAfterUV = ReadVariable<double>(apas.__SSC_ReadVariable, "P_FIB_LENS_AFTER_UV", double.Parse);
+
             data.Time = DateTime.Now;
 
             records.Add(data);
