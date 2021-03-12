@@ -1,9 +1,9 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using UserScript.CamRAC;
 using UserScript.SystemService;
 
@@ -30,35 +30,35 @@ namespace UserScript
             if (opts == null) throw new ArgumentException(nameof(opts));
 
             var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var fullname = $"{desktopPath}\\{opts.Filename}_{DateTime.Now:yyyyMMdd}.csv";
+            var fullname = $"{desktopPath}\\{opts.FilenamePrefix}_{DateTime.Now:yyyyMMdd}.csv";
 
             var records = new List<AlignmentData>();
-            var data = new AlignmentData
-            {
-                LensType = opts.LensType,
-                Sn = ReadVariable<string>(apas.__SSC_ReadVariable, "_SN"),
-                Pn = ReadVariable<string>(apas.__SSC_ReadVariable, "_PN"),
-                Traveler = ReadVariable<string>(apas.__SSC_ReadVariable, "_TC"),
-                WorkOrder = ReadVariable<string>(apas.__SSC_ReadVariable, "_WO"),
-                Op = ReadVariable<string>(apas.__SSC_ReadVariable, "__OP"),
-                PowerBeforeUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_BEFORE_UV", double.Parse),
-                PowerAfterUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_AFTER_UV", double.Parse),
-                LensGap = ReadVariable<double>(apas.__SSC_ReadVariable, "LENS_GAP", double.Parse),
-                Time = DateTime.Now
-            };
-
-
+            var data = new AlignmentData();
+            data.Sn = ReadVariable<string>(apas.__SSC_ReadVariable, "__SN");
+            data.Pn = ReadVariable<string>(apas.__SSC_ReadVariable, "__PN");
+            data.Traveler = ReadVariable<string>(apas.__SSC_ReadVariable, "__TC");
+            data.WorkOrder = ReadVariable<string>(apas.__SSC_ReadVariable, "__WO");
+            data.Op = ReadVariable<string>(apas.__SSC_ReadVariable, "__OP");
+            data.LDLensPowerBeforeUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_BEFORE_UV", double.Parse);
+            data.LDLensPowerAfterUV = ReadVariable<double>(apas.__SSC_ReadVariable, "POWER_AFTER_UV", double.Parse);
+            data.LDLensGap = ReadVariable<double>(apas.__SSC_ReadVariable, "LENS_GAP", double.Parse);
+            data.Time = DateTime.Now;
 
             records.Add(data);
 
-            using (var writer = new StreamWriter(fullname))
-            {
-                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            bool hasHeader = false;
+
+            if (File.Exists(fullname) == false)
+                hasHeader = true;
+           
+            using (var writer = new StreamWriter(fullname, append:true))
+{
+                using (var csv = new CsvWriter(writer,
+                    new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture, hasHeaderRecord: hasHeader)))
                 {
                     csv.WriteRecords(records);
                 }
             }
-
         }
 
         #endregion
@@ -67,22 +67,23 @@ namespace UserScript
 
         private static T ReadVariable<T>(Func<string, object> func, string varName, Func<string, T> typeParser = null)
         {
-            object ret = default;
             try
             {
-               ret = func(varName);
-               if (typeParser == null)
+                var ret = func(varName);
+                if (ret == null)
+                    return default;
+
+                if (typeParser == null)
                    return (T)ret;
-               else
-                   return typeParser(ret.ToString());
+                else
+                    return typeParser(ret.ToString());
             }
-            catch(Exception ex)
+            catch (Exception)
             {
-                throw new InvalidOperationException($"无法读取变量 [{varName}]({ret})，{ex.Message}");
+                //throw new InvalidOperationException($"无法读取变量 [{varName}]({ret})，{ex.Message}");
+                return default;
             }
         }
-
-
 
         #endregion
     }

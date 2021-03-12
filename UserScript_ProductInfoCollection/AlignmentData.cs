@@ -5,34 +5,32 @@ namespace UserScript
 {
     public class AlignmentData
     {
-        [Index(0)]
         public string Sn { get; set; }
 
-        [Index(1)]
         public string Pn { get; set; }
 
-        [Index(2)]
         public string Traveler { get; set; }
 
-        [Index(3)]
         public string WorkOrder { get; set; }
 
-        [Index(4)]
         public string Op { get; set; }
 
-        [Index(5)]
-        public double PowerBeforeUV { get; set; }
-        
-        [Index(6)]
-        public double PowerAfterUV { get; set; }
+        public double CollimatorX { get; set; }
 
-        [Index(7)]
-        public double  LensGap { get; set; }
+        public double CollimatorY { get; set; }
 
-        [Index(8)]
-        public string LensType { get; set; }
+        public double LDLensPowerBeforeUV { get; set; }
         
-        [Index(9)]
+        public double LDLensPowerAfterUV { get; set; }
+
+        public double  LDLensGap { get; set; }
+
+        public double FiberLensPowerBeforeUV { get; set; }
+
+        public double FiberLensPowerAfterUV { get; set; }
+
+        public double FiberLensGap { get; set; }
+
         public DateTime Time { get; set; }
     }
 }
