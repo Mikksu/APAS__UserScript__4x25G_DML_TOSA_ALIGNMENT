@@ -57,15 +57,12 @@ namespace UserScript
 
             records.Add(data);
 
-            bool hasHeader = false;
+            var hasHeader = File.Exists(fullname) == false;
 
-            if (File.Exists(fullname) == false)
-                hasHeader = true;
-           
             using (var writer = new StreamWriter(fullname, append:true))
-{
+            {
                 using (var csv = new CsvWriter(writer,
-                    new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture, hasHeaderRecord: hasHeader)))
+                    new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture) { HasHeaderRecord = hasHeader}))
                 {
                     csv.WriteRecords(records);
                 }
